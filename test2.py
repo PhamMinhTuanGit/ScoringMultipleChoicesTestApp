@@ -38,3 +38,4 @@ def process_omr_sheet(input_image_path, output_image_path):
 input_image_path = '/Users/phamminhtuan/Downloads/Trainning_SET/Images/IMG_1581_iter_0.jpg' 
 output_image_path = '/Users/phamminhtuan/Desktop/output.jpg'  
 process_omr_sheet(input_image_path, output_image_path)
+
