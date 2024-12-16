@@ -2,10 +2,21 @@ import cv2
 import numpy as np
 
 def detect_black_square_centers(image_path, output_path):
+    """
+    Detects black squares in a given image and saves the output to a file.
+    
+    This function takes an image path and an output path as input. It reads the image,
+    converts it to grayscale, thresholds it, finds contours, and then finds the centers
+    of the black squares in the image. The centers are saved in YOLOv8 format.
+    
+    :param image_path: Path to the input image
+    :param output_path: Path to the output image
+    :return: List of centers of the black squares in YOLOv8 format
+    """
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    _, thresh = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY_INV)
+    _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)
 
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -45,7 +56,7 @@ def detect_black_square_centers(image_path, output_path):
     print("Centers of black squares (YOLOv8 format):", centers)
     return centers
 
-input_image_path = '/Users/phamminhtuan/Downloads/Trainning_SET/Images/IMG_1581_iter_0.jpg' 
-output_image_path = '/Users/phamminhtuan/Desktop/output1.jpg' 
+input_image_path = '/Users/phamminhtuan/Desktop/AIChallenge/IMG_1581_iter_0.jpg' 
+output_image_path = '/Users/phamminhtuan/Desktop/AIChallenge/output1.jpg' 
 
 centers = detect_black_square_centers(input_image_path, output_image_path)
