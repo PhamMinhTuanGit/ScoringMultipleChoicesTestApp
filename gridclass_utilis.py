@@ -1,6 +1,11 @@
 import cv2
 import numpy as np
 
+# Input and output paths
+input_image_path = 'IMG_1581_iter_0.jpg'
+output_image_path = 'output1.jpg'
+output_txt_path = 'output_centers.txt'
+
 def detect_black_square_centers(image_path, output_image_path, output_txt_path):
     """
     Detects black squares in a given image and saves the output to a file.
@@ -57,7 +62,7 @@ def detect_black_square_centers(image_path, output_image_path, output_txt_path):
                         yolov8_x = center_x / image_width
                         yolov8_y = center_y / image_height
 
-                        centers.append((yolov8_x, yolov8_y))
+                        centers.append((center_x, center_y))
 
                         # Annotate the image
                         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
@@ -80,7 +85,27 @@ def detect_black_square_centers(image_path, output_image_path, output_txt_path):
     print(f"Centers of black squares saved to: {output_txt_path}")
     return centers
 
-def draw_lines_among_top_5_x_sorted_by_y(centers, image):
+def find_dots_between_y(points, dot1, dot2):
+    """
+    Finds all dots with y-coordinates between the y-values of two given dots.
+
+    :param points: List of all points in the format [(x, y), ...]
+    :param dot1: The first reference dot as (x, y)
+    :param dot2: The second reference dot as (x, y)
+    :return: List of dots with y-coordinates between dot1 and dot2
+    """
+    # Extract y-values from input dots
+    y1, y2 = dot1[1], dot2[1]
+
+    # Determine the range (min and max y)
+    y_min, y_max = min(y1, y2), max(y1, y2)
+
+    # Filter points with y-values within the range
+    dots_in_range = [point for point in points if y_min <= point[1] <= y_max]
+
+    return dots_in_range
+
+def draw_lines_and_store_dots_matrix(centers, image):
     """
     Finds the 5 points with the highest x values, sorts them by y values,
     and draws lines sequentially between consecutive points.
@@ -93,23 +118,20 @@ def draw_lines_among_top_5_x_sorted_by_y(centers, image):
         print("Not enough points to draw lines.")
         return
 
-    # Convert YOLOv8 format (normalized) to pixel coordinates
-    image_height, image_width = image.shape[:2]
-    pixel_centers = [(int(x * image_width), int(y * image_height)) for x, y in centers]
-
     # Find the 5 points with the highest x values
-    top_5_x_max = sorted(pixel_centers, key=lambda p: p[0], reverse=True)[:5]
-    top_5_x_min = sorted(pixel_centers, key=lambda p: p[0], reverse=False)[:5]
+    top_5_x_max = sorted(centers, key=lambda p: p[0], reverse=True)[:5]
+    top_5_x_min = sorted(centers, key=lambda p: p[0], reverse=False)[:5]
     # Sort the top 5 points by their y values
     top_5_x_max_sorted_by_y = sorted(top_5_x_max, key=lambda p: p[1])
     top_5_x_min_sorted_by_y = sorted(top_5_x_min, key=lambda p: p[1])
+    # Initialize the matrix to store dots found between pairs
+    dots_matrix = []
 
     # Draw lines sequentially between the sorted points
     for i in range(len(top_5_x_max_sorted_by_y) - 1):
         point1 = top_5_x_max_sorted_by_y[i]
         point2 = top_5_x_max_sorted_by_y[i + 1]
         cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
-
     for i in range(len(top_5_x_min_sorted_by_y) - 1):
         point1 = top_5_x_min_sorted_by_y[i]
         point2 = top_5_x_min_sorted_by_y[i + 1]
@@ -117,18 +139,18 @@ def draw_lines_among_top_5_x_sorted_by_y(centers, image):
     for i in range(len(top_5_x_min_sorted_by_y)):
         point1 = top_5_x_min_sorted_by_y[i]
         point2 = top_5_x_max_sorted_by_y[i]
+        # Find dots between these two points
+        dots_between = find_dots_between_y(centers, point1, point2)
+        # Add to the matrix
+        dots_matrix.append(dots_between)
         cv2.line(image,point1,point2, (0,0,255), 2) # Redline
 
     print("Lines drawn sequentially among top 5 points sorted by y.")
     cv2.imwrite('final_output.jpg', image)
-
-
-# Input and output paths
-input_image_path = 'IMG_1581_iter_0.jpg'
-output_image_path = 'output1.jpg'
-output_txt_path = 'output_centers.txt'
+    return dots_matrix
 
 # Run the function
 centers = detect_black_square_centers(input_image_path, output_image_path, output_txt_path)
+print("The dots is: ",centers)
 image = cv2.imread(output_image_path)
-draw_lines_among_top_5_x_sorted_by_y(centers, image)
+print(draw_lines_and_store_dots_matrix(centers, image))
