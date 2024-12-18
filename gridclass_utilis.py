@@ -1,10 +1,12 @@
 import cv2
 import numpy as np
+import math
 
 # Input and output paths
 input_image_path = 'IMG_1581_iter_0.jpg'
 output_image_path = 'output1.jpg'
 output_txt_path = 'output_centers.txt'
+file_path = 'IMG_1581_iter_0.txt'  # Replace with the actual file path
 
 def detect_black_square_centers(image_path, output_image_path, output_txt_path):
     """
@@ -62,7 +64,7 @@ def detect_black_square_centers(image_path, output_image_path, output_txt_path):
                         yolov8_x = center_x / image_width
                         yolov8_y = center_y / image_height
 
-                        centers.append((center_x, center_y))
+                        centers.append((yolov8_x, yolov8_y))
 
                         # Annotate the image
                         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
@@ -110,20 +112,25 @@ def draw_lines_and_store_dots_matrix(centers, image):
     Finds the 5 points with the highest x values, sorts them by y values,
     and draws lines sequentially between consecutive points.
 
+    Appends leftover points from centers (not in dots_matrix) to dots_matrix,
+    sorted by 2 highest and 2 lowest y-values.
+
     :param centers: List of center coordinates in YOLOv8 format [(x, y), ...]
     :param image: The image to draw on
-    :return: None
+    :return: Dots matrix containing points between drawn lines and leftover points
     """
     if len(centers) < 2:
         print("Not enough points to draw lines.")
-        return
+        return []
 
-    # Find the 5 points with the highest x values
+    # Find the 5 points with the highest and lowest x values
     top_5_x_max = sorted(centers, key=lambda p: p[0], reverse=True)[:5]
-    top_5_x_min = sorted(centers, key=lambda p: p[0], reverse=False)[:5]
-    # Sort the top 5 points by their y values
+    top_5_x_min = sorted(centers, key=lambda p: p[0])[:5]
+
+    # Sort the points by their y values
     top_5_x_max_sorted_by_y = sorted(top_5_x_max, key=lambda p: p[1])
     top_5_x_min_sorted_by_y = sorted(top_5_x_min, key=lambda p: p[1])
+
     # Initialize the matrix to store dots found between pairs
     dots_matrix = []
 
@@ -131,26 +138,152 @@ def draw_lines_and_store_dots_matrix(centers, image):
     for i in range(len(top_5_x_max_sorted_by_y) - 1):
         point1 = top_5_x_max_sorted_by_y[i]
         point2 = top_5_x_max_sorted_by_y[i + 1]
-        cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
+        #cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
+
     for i in range(len(top_5_x_min_sorted_by_y) - 1):
         point1 = top_5_x_min_sorted_by_y[i]
         point2 = top_5_x_min_sorted_by_y[i + 1]
-        cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
+        #cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
+
     for i in range(len(top_5_x_min_sorted_by_y)):
         point1 = top_5_x_min_sorted_by_y[i]
         point2 = top_5_x_max_sorted_by_y[i]
         # Find dots between these two points
-        dots_between = find_dots_between_y(centers, point1, point2)
+        # Sort from lowest x to hightest
+        dots_between = sorted(find_dots_between_y(centers, point1, point2), key=lambda p:p[0])
         # Add to the matrix
         dots_matrix.append(dots_between)
-        cv2.line(image,point1,point2, (0,0,255), 2) # Redline
+        #cv2.line(image, point1, point2, (0, 0, 255), 2)  # Red line
 
-    print("Lines drawn sequentially among top 5 points sorted by y.")
-    cv2.imwrite('final_output.jpg', image)
+    # Complement the lost dot by vector trick 
+    dots_buffer=(0,0)
+    dots_matrix[1].append(dots_buffer)   
+    dots_matrix[1][4]=dots_matrix[1][3]
+    dots_matrix[1][3] = (
+    dots_matrix[1][4][0] - dots_matrix[2][4][0] + dots_matrix[2][3][0],  # x-coordinate
+    dots_matrix[1][4][1] - dots_matrix[2][4][1] + dots_matrix[2][3][1]   # y-coordinate
+    )
+    #print("new dot is",dots_matrix[1][3]," New vector is: ",dots_matrix[1])
+
+    # Get leftover points not in dots_matrix
+    used_points = {tuple(dot) for row in dots_matrix for dot in row}
+    leftover_points = [point for point in centers if tuple(point) not in used_points]
+
+    # Sort leftover points by y-values
+    leftover_sorted_by_x = sorted(leftover_points, key=lambda p: p[0])
+    dots_matrix.append(leftover_sorted_by_x)  # 2 highest y-values
+
+    # Append 2 highest and 2 lowest y-value points to the dots_matrix
+    # if len(leftover_sorted_by_x) >= 2:
+    #     dots_matrix.append(leftover_sorted_by_x[-2:])  # 2 highest y-values
+    # if len(leftover_sorted_by_x) >= 4:
+    #     dots_matrix.append(leftover_sorted_by_x[:2])  # 2 lowest y-values
+
+    print("Lines drawn and dots matrix updated.")
+    #cv2.imwrite('final_output.jpg', image)
     return dots_matrix
 
+def dots_in_quadrilateral(corners, dots):
+    """
+    Finds all the dots inside the quadrilateral defined by four corners.
+    
+    :param corners: A tuple of 4 tuples, each representing (x, y) coordinates of the quadrilateral's corners
+    :param dots: A list of tuples representing (x, y) coordinates of the dots to check
+    :return: A list of tuples (dots) that are inside the quadrilateral
+    """
+    from shapely.geometry import Point, Polygon
+
+    # Ensure the corners are sorted correctly (in order of the quadrilateral's path)
+    if len(corners) != 4:
+        raise ValueError("Exactly 4 corners are required to define a quadrilateral.")
+    
+    # Create a Polygon object using the corners
+    polygon = Polygon(corners)
+    
+    # Filter dots that are inside the polygon
+    inside_dots = [dot for dot in dots if polygon.contains(Point(dot))]
+    
+    return inside_dots
+
+def extract_bubbles(file_path):
+    """
+    Reads the file and extracts the second and third columns from all rows,
+    returning them as a list of tuples.
+
+    :param file_path: Path to the .txt file
+    :return: List of tuples containing (column2, column3) from all rows
+    """
+    with open(file_path, 'r') as file:
+        # Process all lines in the file
+        bubbles = [
+            (float(line.split()[1]), float(line.split()[2]))
+            for line in file
+        ]
+        
+        return bubbles
+def draw_dots_on_image(image_path, dots, output_path="output_image.jpg", dot_color=(0, 0, 255), dot_radius=10):
+    """
+    Draws large dots on an image based on YOLOv8 format coordinates.
+
+    :param image_path: Path to the input image
+    :param dots: A tuple of (x, y) coordinates scaled between 0 and 1
+    :param output_path: Path to save the output image with dots drawn
+    :param dot_color: Color of the dots in BGR format (default is red)
+    :param dot_radius: Radius of the dots (default is 10)
+    :return: None (saves the output image to `output_path`)
+    """
+    # Load the image
+    image = cv2.imread(image_path)
+    if image is None:
+        raise FileNotFoundError(f"Image not found at {image_path}")
+
+    height, width, _ = image.shape
+
+    # Draw each dot on the image
+    for dot in dots:
+        # Convert normalized coordinates to pixel values
+        x = int(dot[0] * width)
+        y = int(dot[1] * height)
+
+        # Draw a circle (dot) on the image
+        cv2.circle(image, (x, y), dot_radius, dot_color, thickness=-1)  # -1 fills the circle
+
+    # Save the output image
+    cv2.imwrite(output_path, image)
+    print(f"Output image saved at {output_path}")
+def sort_to_convex_quadrilateral(dots):
+    """
+    Sorts a tuple of 4 dots into the order of a convex quadrilateral.
+
+    :param dots: A tuple or list of 4 tuples, each representing (x, y) coordinates of a point
+    :return: A list of 4 tuples sorted into a convex quadrilateral order
+    """
+    if len(dots) != 4:
+        raise ValueError("Input must contain exactly 4 dots.")
+
+    # Calculate the centroid of the points
+    centroid_x = sum(dot[0] for dot in dots) / 4
+    centroid_y = sum(dot[1] for dot in dots) / 4
+
+    # Function to calculate the polar angle of a point relative to the centroid
+    def polar_angle(dot):
+        x, y = dot
+        return math.atan2(y - centroid_y, x - centroid_x)
+
+    # Sort the dots by their polar angle relative to the centroid
+    sorted_dots = sorted(dots, key=polar_angle)
+
+    return sorted_dots
 # Run the function
 centers = detect_black_square_centers(input_image_path, output_image_path, output_txt_path)
-print("The dots is: ",centers)
+#print("The dots is: ",centers)
 image = cv2.imread(output_image_path)
-print(draw_lines_and_store_dots_matrix(centers, image))
+bubbles = extract_bubbles(file_path)
+print("\n Do dai cua bubbles",len(bubbles))
+#print(bubbles)
+dots_matrix=draw_lines_and_store_dots_matrix(centers,image)
+class_corner=sort_to_convex_quadrilateral(dots_matrix[5])
+print("\n 4 goc cua SBD la: ",class_corner)
+sbd = dots_in_quadrilateral(class_corner,bubbles)
+print("\n SBD bao gom ",len(sbd)," diem gom nhung diem sau: ",sbd)
+draw_dots_on_image(input_image_path, sbd, output_path="output_with_dots.jpg", dot_radius=15)
