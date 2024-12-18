@@ -20,7 +20,7 @@ def draw_dots_on_image(image_path, dots, output_path="draw_dots.jpg", dot_color=
         raise FileNotFoundError(f"Image not found at {image_path}")
 
     height, width, _ = image.shape
-
+    
     # Draw each dot on the image
     for dot in dots:
         # Convert normalized coordinates to pixel values

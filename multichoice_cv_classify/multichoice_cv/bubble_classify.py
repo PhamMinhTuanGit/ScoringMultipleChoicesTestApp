@@ -1,6 +1,6 @@
 # quadrilateral.py
 from shapely.geometry import Point, Polygon
-from visualization import visualize_batches
+from visualization import visualize_batches, draw_dots_on_image
 import math
 import numpy as np
 from sklearn.cluster import DBSCAN
@@ -56,7 +56,7 @@ def classify_batches(dots, eps=0.001):
 
     :param dots: List of (x, y) tuples representing the dots
     :param eps: Maximum gap between points in a batch (adjust based on data skew)
-    :return: List of batches, each containing dots
+    :return: List of batches, each containing dots, sorted by the y-value of the first element in each batch
     """
     # Extract y-values
     y_values = np.array([dot[1] for dot in dots]).reshape(-1, 1)
@@ -71,8 +71,14 @@ def classify_batches(dots, eps=0.001):
             batches[label] = []
         batches[label].append(dot)
 
-    # Convert batches to a sorted list of clusters
-    clustered_batches = [batches[label] for label in sorted(batches.keys())]
+    # Convert batches to a list of clusters and sort each batch by y-value
+    clustered_batches = [
+        sorted(batches[label], key=lambda x: x[1])  # Sort each batch by y value (within the batch)
+        for label in sorted(batches.keys())
+    ]
+    
+    # Sort the batches by the y-value of the first element in each batch
+    clustered_batches.sort(key=lambda batch: batch[0][1])  # Sort by the y value of the first dot in each batch
 
     # Visualize the clusters using the new function
     visualize_batches(batches)
