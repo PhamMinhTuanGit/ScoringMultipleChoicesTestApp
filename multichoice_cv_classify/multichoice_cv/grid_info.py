@@ -111,6 +111,7 @@ def getExtractsections(matrix_dots):
 
     # Assign values to the sections
     sections[0][0] = matrix_dots[5]
+    sections[0][1] = (matrix_dots[0][1], matrix_dots[1][4], matrix_dots[5][2], matrix_dots[5][3],)
     sections[1][0] = (matrix_dots[1][0], matrix_dots[1][1], matrix_dots[2][0], matrix_dots[2][1])
     sections[1][1] = (matrix_dots[1][1], matrix_dots[1][2], matrix_dots[2][1], matrix_dots[2][2])
     sections[1][2] = (matrix_dots[1][2], matrix_dots[1][3], matrix_dots[2][2], matrix_dots[2][3])

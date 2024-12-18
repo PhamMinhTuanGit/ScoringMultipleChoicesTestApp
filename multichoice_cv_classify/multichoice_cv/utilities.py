@@ -13,16 +13,19 @@ def generate_random_colors(n):
 
 def extract_bubbles(file_path):
     """
-    Reads the file and extracts the second and third columns from all rows,
-    returning them as a list of tuples.
+    Reads the file and extracts all columns from each row, returning them as a list of tuples.
 
     :param file_path: Path to the .txt file
-    :return: List of tuples containing (column2, column3) from all rows
+    :return: List of tuples containing (flag, x, y, width, height) from all rows
     """
     with open(file_path, 'r') as file:
         # Process all lines in the file
         bubbles = [
-            (float(line.split()[1]), float(line.split()[2]))
+            (float(line.split()[0]),  # flag
+             float(line.split()[1]),  # x
+             float(line.split()[2]),  # y
+             float(line.split()[3]),  # width
+             float(line.split()[4]))  # height
             for line in file
         ]
         
