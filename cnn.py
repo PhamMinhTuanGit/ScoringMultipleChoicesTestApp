@@ -40,11 +40,12 @@ class MyDataset(torch.utils.data.Dataset):
         
        
     def __getitem__(self, idx):
-        return {'input': self.inputs[idx], 'target': self.targets[idx]}
+        image = self.inputs[idx]
+        label = self.targets[idx]
+        return image, label
 
     def __len__(self):
         return len(self.inputs)
 image_path = '/Users/phamminhtuan/Desktop/AIChallenge/IMG_1581_iter_0.jpg'
 label_path = '/Users/phamminhtuan/Desktop/AIChallenge/IMG_1581_iter_0.txt'
 train_dataset = MyDataset(image_path, label_path)
-train_dataset[0]
