@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 import math
-
+from sklearn.cluster import DBSCAN
+import matplotlib.pyplot as plt
+import random
 # Input and output paths
 input_image_path = 'IMG_1581_iter_0.jpg'
 output_image_path = 'output1.jpg'
@@ -272,8 +274,58 @@ def sort_to_convex_quadrilateral(dots):
 
     # Sort the dots by their polar angle relative to the centroid
     sorted_dots = sorted(dots, key=polar_angle)
-
     return sorted_dots
+
+def classify_and_visualize_batches(dots, eps=5):
+    """
+    Classify dots into batches based on their y-values using DBSCAN and visualize the result.
+
+    :param dots: List of (x, y) tuples representing the dots
+    :param eps: Maximum gap between points in a batch (adjust based on data skew)
+    :return: List of batches, each containing dots
+    """
+    # Extract y-values
+    y_values = np.array([dot[1] for dot in dots]).reshape(-1, 1)
+
+    # Apply DBSCAN clustering
+    clustering = DBSCAN(eps=eps, min_samples=1).fit(y_values)
+
+    # Group dots by their cluster labels
+    batches = {}
+    for label, dot in zip(clustering.labels_, dots):
+        if label not in batches:
+            batches[label] = []
+        batches[label].append(dot)
+
+    # Convert batches to a sorted list of clusters
+    clustered_batches = [batches[label] for label in sorted(batches.keys())]
+
+    # Visualize clusters
+    plt.figure(figsize=(8, 6))
+    colors = generate_random_colors(len(batches))
+    
+    for label, dots in batches.items():
+        x, y = zip(*dots)  # Separate x and y coordinates
+        plt.scatter(x, y, color=colors[label], label=f"Batch {label}", s=100)  # Use larger dots for visibility
+
+    plt.title("Dot Batches Based on Y-Values")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    return clustered_batches
+
+def generate_random_colors(n):
+    """
+    Generate `n` distinct random colors.
+
+    :param n: Number of colors to generate
+    :return: List of random colors
+    """
+    return [tuple(random.random() for _ in range(3)) for _ in range(n)]
+
 # Run the function
 centers = detect_black_square_centers(input_image_path, output_image_path, output_txt_path)
 #print("The dots is: ",centers)
@@ -286,4 +338,6 @@ class_corner=sort_to_convex_quadrilateral(dots_matrix[5])
 print("\n 4 goc cua SBD la: ",class_corner)
 sbd = dots_in_quadrilateral(class_corner,bubbles)
 print("\n SBD bao gom ",len(sbd)," diem gom nhung diem sau: ",sbd)
+classified_bubble = classify_and_visualize_batches(sbd,0.001)
+print("\n the classified bubble is: ", classified_bubble)
 draw_dots_on_image(input_image_path, sbd, output_path="output_with_dots.jpg", dot_radius=15)
