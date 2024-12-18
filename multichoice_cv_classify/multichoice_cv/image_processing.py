@@ -1,7 +1,6 @@
 import cv2
-import numpy as np
 
-def detect_black_square_centers(image_path, output_image_path, output_txt_path):
+def getNails(image_path, output_image_path, output_txt_path):
     """
     Detects black squares in a given image and saves the output to a file.
     
@@ -79,56 +78,3 @@ def detect_black_square_centers(image_path, output_image_path, output_txt_path):
     print(f"Processed image saved to: {output_image_path}")
     print(f"Centers of black squares saved to: {output_txt_path}")
     return centers
-
-def draw_lines_among_top_5_x_sorted_by_y(centers, image):
-    """
-    Finds the 5 points with the highest x values, sorts them by y values,
-    and draws lines sequentially between consecutive points.
-
-    :param centers: List of center coordinates in YOLOv8 format [(x, y), ...]
-    :param image: The image to draw on
-    :return: None
-    """
-    if len(centers) < 2:
-        print("Not enough points to draw lines.")
-        return
-
-    # Convert YOLOv8 format (normalized) to pixel coordinates
-    image_height, image_width = image.shape[:2]
-    pixel_centers = [(int(x * image_width), int(y * image_height)) for x, y in centers]
-
-    # Find the 5 points with the highest x values
-    top_5_x_max = sorted(pixel_centers, key=lambda p: p[0], reverse=True)[:5]
-    top_5_x_min = sorted(pixel_centers, key=lambda p: p[0], reverse=False)[:5]
-    # Sort the top 5 points by their y values
-    top_5_x_max_sorted_by_y = sorted(top_5_x_max, key=lambda p: p[1])
-    top_5_x_min_sorted_by_y = sorted(top_5_x_min, key=lambda p: p[1])
-
-    # Draw lines sequentially between the sorted points
-    for i in range(len(top_5_x_max_sorted_by_y) - 1):
-        point1 = top_5_x_max_sorted_by_y[i]
-        point2 = top_5_x_max_sorted_by_y[i + 1]
-        cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
-
-    for i in range(len(top_5_x_min_sorted_by_y) - 1):
-        point1 = top_5_x_min_sorted_by_y[i]
-        point2 = top_5_x_min_sorted_by_y[i + 1]
-        cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
-    for i in range(len(top_5_x_min_sorted_by_y)):
-        point1 = top_5_x_min_sorted_by_y[i]
-        point2 = top_5_x_max_sorted_by_y[i]
-        cv2.line(image,point1,point2, (0,0,255), 2) # Redline
-
-    print("Lines drawn sequentially among top 5 points sorted by y.")
-    cv2.imwrite('final_output.jpg', image)
-
-
-# Input and output paths
-input_image_path = 'IMG_1581_iter_0.jpg'
-output_image_path = 'output1.jpg'
-output_txt_path = 'output_centers.txt'
-
-# Run the function
-centers = detect_black_square_centers(input_image_path, output_image_path, output_txt_path)
-image = cv2.imread(output_image_path)
-draw_lines_among_top_5_x_sorted_by_y(centers, image)
