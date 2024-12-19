@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import torch.optim as optim
 
-
+#========================================================================================================
 class MyDataset(torch.utils.data.Dataset):
     """
     Initializes the dataset by reading the image and label files, and processes them into tensors.
@@ -31,7 +31,6 @@ class MyDataset(torch.utils.data.Dataset):
         ])
         image = cv2.imread(self.image_path)
         labels, coords = utils.read_file_to_tensors(self.label_path)
-
         for i, coord in enumerate(coords):
             square = utils.find_yolov8_square(image, coord)
             cropped_image = utils.get_box(image, square)
@@ -39,22 +38,18 @@ class MyDataset(torch.utils.data.Dataset):
             cropped_tensor = self.transform(cropped_image)
             self.inputs.append(cropped_tensor)
             self.targets.append(labels[i])
-
     def __getitem__(self, idx):
         image = self.inputs[idx]
         label = self.targets[idx]
         return image, label
-
     def __len__(self):
         return len(self.inputs)
-
-
 image_path = '/Users/phamminhtuan/Desktop/AIChallenge/IMG_1581_iter_0.jpg'
 label_path = '/Users/phamminhtuan/Desktop/AIChallenge/IMG_1581_iter_0.txt'
 train_dataset = MyDataset(image_path, label_path)
 val_dataset = MyDataset(image_path, label_path)
-
-
+#Model
+#========================================================================================================
 class EfficientCNN(nn.Module):
     def __init__(self):
         """
@@ -95,12 +90,10 @@ class EfficientCNN(nn.Module):
         x = self.classifier(x)
         return x
 
-
+#========================================================================================================
 model = EfficientCNN()
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True)
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=16, shuffle=False)
-
-
 def train_model(train_loader, val_loader, epochs=50, batch_size=64):
     """
     Train the EfficientCNN model on the given training data.
