@@ -1,6 +1,6 @@
 import cv2
 
-def getNails(image_path, output_image_path, output_txt_path):
+def getNails(image_path):
     """
     Detects black squares in a given image and saves the output to a file.
     
@@ -68,13 +68,13 @@ def getNails(image_path, output_image_path, output_txt_path):
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
     # Save the annotated image
-    cv2.imwrite(output_image_path, image)
+    #cv2.imwrite(output_image_path, image)
 
     # Save the centers to a text file
-    with open(output_txt_path, 'w') as file:
-        for center in centers:
-            file.write(f"{center[0]:.6f}, {center[1]:.6f}\n")
+    # with open(output_txt_path, 'w') as file:
+    #     for center in centers:
+    #         file.write(f"{center[0]:.6f}, {center[1]:.6f}\n")
 
-    print(f"Processed image saved to: {output_image_path}")
-    print(f"Centers of black squares saved to: {output_txt_path}")
+    #print(f"Processed image saved to: {output_image_path}")
+    #print(f"Centers of black squares saved to: {output_txt_path}")
     return centers
