@@ -67,6 +67,6 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 if __name__ == "__main__":
     input_image_path = 'IMG_1581_iter_0.jpg'
     input_data = 'IMG_1581_iter_0.txt'
-    result_txt_path = 'results_test.txt'
+    result_txt_path = 'results_test_2.txt'
 
     getSubmitResult(input_image_path, input_data, result_txt_path)
