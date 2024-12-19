@@ -3,33 +3,34 @@ import math
 import numpy as np
 from sklearn.cluster import DBSCAN
 from utilities import append_to_file
+
+def sort_to_convex_quadrilateral(dots):
+    """
+    Sorts a tuple of 4 dots into the order of a convex quadrilateral.
+
+    :param dots: A tuple or list of 4 tuples, each representing (x, y) coordinates of a point
+    :return: A list of 4 tuples sorted into a convex quadrilateral order
+    """
+    if len(dots) != 4:
+        raise ValueError("Input must contain exactly 4 dots.")
+
+    # Calculate the centroid of the points
+    centroid_x = sum(dot[0] for dot in dots) / 4
+    centroid_y = sum(dot[1] for dot in dots) / 4
+
+    # Function to calculate the polar angle of a point relative to the centroid
+    def polar_angle(dot):
+        x, y = dot
+        return math.atan2(y - centroid_y, x - centroid_x)
+
+    # Sort the dots by their polar angle relative to the centroid
+    sorted_dots = sorted(dots, key=polar_angle)
+    return sorted_dots
+
 class BubbleClassifier:
     def __init__(self, grid_section, dots):
         self.grid_section = grid_section
         self.dots = dots
-
-    def sort_to_convex_quadrilateral(self, dots):
-        """
-        Sorts a tuple of 4 dots into the order of a convex quadrilateral.
-
-        :param dots: A tuple or list of 4 tuples, each representing (x, y) coordinates of a point
-        :return: A list of 4 tuples sorted into a convex quadrilateral order
-        """
-        if len(dots) != 4:
-            raise ValueError("Input must contain exactly 4 dots.")
-
-        # Calculate the centroid of the points
-        centroid_x = sum(dot[0] for dot in dots) / 4
-        centroid_y = sum(dot[1] for dot in dots) / 4
-
-        # Function to calculate the polar angle of a point relative to the centroid
-        def polar_angle(dot):
-            x, y = dot
-            return math.atan2(y - centroid_y, x - centroid_x)
-
-        # Sort the dots by their polar angle relative to the centroid
-        sorted_dots = sorted(dots, key=polar_angle)
-        return sorted_dots
 
     def dots_in_quadrilateral(self, corners):
         """
@@ -39,7 +40,7 @@ class BubbleClassifier:
         :return: A list of tuples (dots in full format) that are inside the quadrilateral
         """
         # Ensure the corners are sorted correctly (in order of the quadrilateral's path)
-        corners = self.sort_to_convex_quadrilateral(corners)
+        corners = sort_to_convex_quadrilateral(corners)
         if len(corners) != 4:
             raise ValueError("Exactly 4 corners are required to define a quadrilateral.")
 
