@@ -49,7 +49,7 @@ def dots_in_quadrilateral(corners, dots):
     
     return inside_dots
 
-def classify_batches(dots, axis=1, eps=0.001):
+def classify_batches(dots, axis=1, eps=0.002):
     """
     Classify dots into batches based on their axis-values (x or y) using DBSCAN.
 
