@@ -30,3 +30,17 @@ def extract_bubbles(file_path):
         ]
         
     return bubbles
+
+def append_to_file(file_path, string_to_append):
+    """
+    Appends a string to a text file.
+
+    :param file_path: Path to the text file.
+    :param string_to_append: The string to append to the file.
+    :return: None
+    """
+    try:
+        with open(file_path, "a") as file:  # Open the file in append mode
+            file.write(string_to_append +" ")  # Append the string with a newline
+    except Exception as e:
+        print(f"Error occurred while appending to the file: {e}")
