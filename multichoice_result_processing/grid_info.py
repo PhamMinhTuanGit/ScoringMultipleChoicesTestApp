@@ -92,7 +92,7 @@ def getGridmatrix(centers):
 
     # Sort leftover points by y-values
     leftover_sorted_by_x = sorted(leftover_points, key=lambda p: p[0])
-    print("\n The left over is: ", leftover_sorted_by_x )
+    #print("\n The left over is: ", leftover_sorted_by_x )
     dots_matrix.append(leftover_sorted_by_x)  # 2 highest y-values
     
     # Append 2 highest and 2 lowest y-value points to the dots_matrix
