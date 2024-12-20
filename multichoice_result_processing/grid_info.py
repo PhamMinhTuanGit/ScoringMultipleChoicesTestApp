@@ -42,16 +42,24 @@ def linearForwardDot(dotA,dotB,k=0.56):
     )
     return newdot
 
+def flattenMatrix(matrix):
+    """
+    Flattens a matrix of tuples (x, y) into a single list of tuples.
+
+    :param matrix: A 2D list (matrix) where each element is a tuple (x, y)
+    :return: A flattened list of tuples
+    """
+    return [item for row in matrix for item in row]
+
 def getGridmatrix(centers):
     """
     Finds the 5 points with the highest x values, sorts them by y values,
     and draws lines sequentially between consecutive points.
 
     Appends leftover points from centers (not in dots_matrix) to dots_matrix,
-    sorted by 2 highest and 2 lowest y-values.
+    with specific conditions for inclusion based on y-values.
 
     :param centers: List of center coordinates in YOLOv8 format [(x, y), ...]
-    :param image: The image to draw on
     :return: Dots matrix containing points between drawn lines and leftover points
     """
     if len(centers) < 2:
@@ -73,51 +81,50 @@ def getGridmatrix(centers):
     for i in range(len(top_5_x_max_sorted_by_y) - 1):
         point1 = top_5_x_max_sorted_by_y[i]
         point2 = top_5_x_max_sorted_by_y[i + 1]
-        #cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
 
     for i in range(len(top_5_x_min_sorted_by_y) - 1):
         point1 = top_5_x_min_sorted_by_y[i]
         point2 = top_5_x_min_sorted_by_y[i + 1]
-        #cv2.line(image, point1, point2, (255, 0, 0), 2)  # Blue line
 
     for i in range(len(top_5_x_min_sorted_by_y)):
         point1 = top_5_x_min_sorted_by_y[i]
         point2 = top_5_x_max_sorted_by_y[i]
         # Find dots between these two points
-        # Sort from lowest x to hightest
-        dots_between = sorted(getDotsbetween(centers, point1, point2,1), key=lambda p:p[0])
+        # Sort from lowest x to highest
+        dots_between = sorted(getDotsbetween(centers, point1, point2, 1), key=lambda p: p[0])
         # Add to the matrix
         dots_matrix.append(dots_between)
-        #cv2.line(image, point1, point2, (0, 0, 255), 2)  # Red line
 
-    # Complement the lost dot by vector trick 
-    dots_buffer=(0,0)
-    dots_matrix[1].append(dots_buffer)   
-    dots_matrix[1][4]=dots_matrix[1][3]
+    # Complement the lost dot by vector trick
+    dots_buffer = (0, 0)
+    dots_matrix[1].append(dots_buffer)
+    dots_matrix[1][4] = dots_matrix[1][3]
 
     dots_matrix[1][3] = (
-    dots_matrix[1][4][0] - dots_matrix[2][4][0] + dots_matrix[2][3][0],  # x-coordinate
-    dots_matrix[1][4][1] - dots_matrix[2][4][1] + dots_matrix[2][3][1]   # y-coordinate
+        dots_matrix[1][4][0] - dots_matrix[2][4][0] + dots_matrix[2][3][0],  # x-coordinate
+        dots_matrix[1][4][1] - dots_matrix[2][4][1] + dots_matrix[2][3][1]   # y-coordinate
     )
-    #print("new dot is",dots_matrix[1][3]," New vector is: ",dots_matrix[1])
 
     # Get leftover points not in dots_matrix
     used_points = {tuple(dot) for row in dots_matrix for dot in row}
     leftover_points = [point for point in centers if tuple(point) not in used_points]
 
     # Sort leftover points by y-values
-    leftover_sorted_by_x = sorted(leftover_points, key=lambda p: p[0])
-    #print("\n The left over is: ", leftover_sorted_by_x )
-    dots_matrix.append(leftover_sorted_by_x)  # 2 highest y-values
-    
-    # Append 2 highest and 2 lowest y-value points to the dots_matrix
-    # if len(leftover_sorted_by_x) >= 2:
-    #     dots_matrix.append(leftover_sorted_by_x[-2:])  # 2 highest y-values
-    # if len(leftover_sorted_by_x) >= 4:
-    #     dots_matrix.append(leftover_sorted_by_x[:2])  # 2 lowest y-values
+    leftover_sorted_by_y = sorted(leftover_points, key=lambda p: p[1])
 
-    #cv2.imwrite('final_output.jpg', image)
-
+    # Get the smallest and second smallest y-value points
+    smallest_and_second_smallest_y = leftover_sorted_by_y[:2] if len(leftover_sorted_by_y) >= 2 else []
+    print("The smallest_and second smallest",smallest_and_second_smallest_y)
+    # Find 2 nearest points to any point with y < dots_matrix[1][0]
+    reference_y = dots_matrix[1][0][1]
+    smaller_y_points = [point for point in leftover_points if point[1] < reference_y]
+    nearest_points = sorted(smaller_y_points, key=lambda p: abs(p[1] - reference_y))[:2]
+    print("nearest point is",nearest_points)
+    # Append the specific leftover points to the matrix
+    dots_matrix.append(smallest_and_second_smallest_y)
+    dots_matrix[5].append(nearest_points[0])
+    dots_matrix[5].append(nearest_points[1])
+    print("The dotmatrix5 is ",dots_matrix[5])
     return dots_matrix
 
 def getExtractsections(matrix_dots):
@@ -125,7 +132,7 @@ def getExtractsections(matrix_dots):
     sections = [[None for _ in range(8)] for _ in range(4)]  # Creates a 4x6 list filled with None
     # Assign values to the sections
     sections[0][0] = sort_to_convex_quadrilateral(matrix_dots[5])
-    sections[0][1] = sort_to_convex_quadrilateral((matrix_dots[0][1], matrix_dots[1][4], matrix_dots[5][2], matrix_dots[5][3]))
+    sections[0][1] = sort_to_convex_quadrilateral((matrix_dots[0][1], matrix_dots[1][4], sections[0][0][1], sections[0][0][2]))
     sections[1][0] = sort_to_convex_quadrilateral((matrix_dots[1][0], matrix_dots[1][1], matrix_dots[2][0], matrix_dots[2][1]))
     sections[1][1] = sort_to_convex_quadrilateral((matrix_dots[1][1], matrix_dots[1][2], matrix_dots[2][1], matrix_dots[2][2]))
     sections[1][2] = sort_to_convex_quadrilateral((matrix_dots[1][2], matrix_dots[1][3], matrix_dots[2][2], matrix_dots[2][3]))
