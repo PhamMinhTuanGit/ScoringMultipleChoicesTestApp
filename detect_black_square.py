@@ -54,10 +54,9 @@ def detect_black_square_centers(image):
     group_1 = centers_sorted[:7]   # 7 điểm có y lớn nhất
     group_2 = centers_sorted[7:16] # 9 điểm có y lớn tiếp theo
     group_3 = centers_sorted[16:21] # 5 điểm có y lớn tiếp theo
-    group_4 = centers_sorted[21:25] # 4 điểm có y lớn tiếp theo
-    group_5 = centers_sorted[25:27] # 2 điểm có y lớn tiếp theo
-    group_6 = centers_sorted[27:29] # 2 điểm có y lớn tiếp theo
-    group_7 = centers_sorted[29:]   # 2 điểm còn lại
+    group_4 = centers_sorted[21:27] # 6 điểm có y lớn tiếp theo
+    group_5 = centers_sorted[27:29] # 2 điểm có y lớn tiếp theo
+    group_6 = centers_sorted[29:]   # 2 điểm còn lại
 
     # Đảm bảo các nhóm đều đã được sắp xếp theo x giảm dần
     group_1_sorted = sorted(group_1, key=lambda point: -point[0])
@@ -66,9 +65,8 @@ def detect_black_square_centers(image):
     group_4_sorted = sorted(group_4, key=lambda point: -point[0])
     group_5_sorted = sorted(group_5, key=lambda point: -point[0])
     group_6_sorted = sorted(group_6, key=lambda point: -point[0])
-    group_7_sorted = sorted(group_7, key=lambda point: -point[0])
 
     # Kết hợp tất cả các nhóm lại theo thứ tự đã yêu cầu
-    final_sorted_centers = group_1_sorted + group_2_sorted + group_3_sorted + group_4_sorted + group_5_sorted + group_6_sorted + group_7_sorted
+    final_sorted_centers = group_1_sorted + group_2_sorted + group_3_sorted + group_4_sorted + group_5_sorted + group_6_sorted
     print("Centers of black squares (YOLOv8 format):", final_sorted_centers)
     return final_sorted_centers
