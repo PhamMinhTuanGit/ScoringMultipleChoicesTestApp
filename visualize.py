@@ -52,12 +52,3 @@ def draw_boxes_from_yolo(image_path, txt_path, output_path):
     plt.title("Image with Bounding Boxes")
     plt.axis("off")
     plt.show()
-
-
-# Đường dẫn
-image_path = 'Image\Copy of IMG_1584_iter_36.jpg'
-txt_path = 'test.txt'
-output_path = 'Image/annotated_image.jpg'
-
-# Gọi hàm
-draw_boxes_from_yolo(image_path, txt_path, output_path)

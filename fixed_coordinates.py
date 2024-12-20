@@ -6,25 +6,26 @@ from utils import convert_to_yolo_format, save_to_txt
 
 def fixed_circle(input_image_path, output_file):
     image = cv2.imread(input_image_path)
+    height, width = image.shape[:2]
 
     final_coordinate = []
-    centers = detect_black_square_centers(image)
+    centers = detect_black_square_centers(input_image_path)
 
-    idx_list = [1, 7, 30, 31]
+    # idx_list = [1, 7, 30, 31]
 
-    # 4 góc tọa độ cụ thể (YOLO normalized format)
-    points_of_interest = [
-        centers[idx_list[0]-1],  # Point 1
-        centers[idx_list[1]-1],  # Point 2
-        centers[idx_list[2]-1],  # Point 3
-        centers[idx_list[3]-1],  # Point 4
-    ]
+    # # 4 góc tọa độ cụ thể (YOLO normalized format)
+    # points_of_interest = [
+    #     centers[idx_list[0]-1],  # Point 1
+    #     centers[idx_list[1]-1],  # Point 2
+    #     centers[idx_list[2]-1],  # Point 3
+    #     centers[idx_list[3]-1],  # Point 4
+    # ]
 
-    angle = find_angle(points_of_interest)
-    image = rotate(image, angle, 1)
+    # angle = find_angle(points_of_interest)
+    # image = rotate(image, angle, 1)
 
-    height, width = image.shape[:2]
-    centers = detect_black_square_centers(image)
+    # height, width = image.shape[:2]
+    # centers = detect_black_square_centers(image)
 
     # Add the coordinate of each area
     final_coordinate = add_points_by_region(image, [29, 28, 23, 24], (0.185, 0.11, 0.09, 0.05), (10, 6), (0.025, 0.037), centers, final_coordinate) # SBD
