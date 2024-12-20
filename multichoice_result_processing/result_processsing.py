@@ -23,10 +23,14 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
             {"name": "phan1_2", "section_index": (1, 1), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 10},
             {"name": "phan1_3", "section_index": (1, 2), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 20},
             {"name": "phan1_4", "section_index": (1, 3), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 30},
-            {"name": "phan2_1", "section_index": (2, 0), "axis": 1, "eps": 0.002, "input_string": "2.", "gap_string": 0},
-            {"name": "phan2_2", "section_index": (2, 1), "axis": 1, "eps": 0.002, "input_string": "2.", "gap_string": 1},
-            {"name": "phan2_3", "section_index": (2, 2), "axis": 1, "eps": 0.002, "input_string": "2.", "gap_string": 4},
-            {"name": "phan2_4", "section_index": (2, 3), "axis": 1, "eps": 0.002, "input_string": "2.", "gap_string": 6},
+            {"name": "phan2_1", "section_index": (2, 0), "axis": 1, "eps": 0.002, "input_string": "2.1", "gap_string": "a"},
+            {"name": "phan2_2", "section_index": (2, 1), "axis": 1, "eps": 0.002, "input_string": "2.2", "gap_string": "a"},
+            {"name": "phan2_3", "section_index": (2, 2), "axis": 1, "eps": 0.002, "input_string": "2.3", "gap_string": "a"},
+            {"name": "phan2_4", "section_index": (2, 3), "axis": 1, "eps": 0.002, "input_string": "2.4", "gap_string": "a"},
+            {"name": "phan2_5", "section_index": (2, 4), "axis": 1, "eps": 0.002, "input_string": "2.5", "gap_string": "a"},
+            {"name": "phan2_6", "section_index": (2, 5), "axis": 1, "eps": 0.002, "input_string": "2.6", "gap_string": "a"},
+            {"name": "phan2_7", "section_index": (2, 6), "axis": 1, "eps": 0.002, "input_string": "2.7", "gap_string": "a"},
+            {"name": "phan2_8", "section_index": (2, 7), "axis": 1, "eps": 0.002, "input_string": "2.8", "gap_string": "a"},
             {"name": "phan3_1", "section_index": (3, 0), "axis": 1, "eps": 0.002, "input_string": "3.1", "gap_string": "none"},
             {"name": "phan3_2", "section_index": (3, 1), "axis": 1, "eps": 0.002, "input_string": "3.2", "gap_string": "none"},
             {"name": "phan3_3", "section_index": (3, 2), "axis": 1, "eps": 0.002, "input_string": "3.3", "gap_string": "none"},
@@ -68,5 +72,5 @@ if __name__ == "__main__":
     input_image_path = '/Users/phamminhtuan/Desktop/Trainning_SET/Images/IMG_1581_iter_0.jpg'
     input_data = '/Users/phamminhtuan/Desktop/AIChallenge/picked_output.txt'
     result_txt_path = 'results_test_cnn.txt'
-
+    
     getSubmitResult(input_image_path, input_data, result_txt_path)

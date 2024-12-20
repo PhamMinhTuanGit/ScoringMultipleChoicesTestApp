@@ -1,7 +1,7 @@
 # bubble_detection.py
 from sklearn.cluster import DBSCAN
 import numpy as np
-
+from bubble_classify import sort_to_convex_quadrilateral
 def getDotsbetween(centers, dot1, dot2, axis=1):
     """
     Finds all dots with coordinates between the values of two given dots along a specified axis.
@@ -27,6 +27,20 @@ def getDotsbetween(centers, dot1, dot2, axis=1):
     ]
 
     return dots_in_range
+def linearForwardDot(dotA,dotB,k=0.56):
+    """
+    Linear forward a dot with the start from A
+
+    :param dotA: the first dot a tupple of (x,y)
+    :param dotB: the second dot
+    :param k: define the scale
+    :return a tupple (x,y)
+    """
+    newdot = (
+    k*(dotB[0] - dotA[0]) + dotA[0],  # x-coordinate
+    k*(dotB[1] - dotA[1]) + dotA[1]   # y-coordinate
+    )
+    return newdot
 
 def getGridmatrix(centers):
     """
@@ -80,6 +94,7 @@ def getGridmatrix(centers):
     dots_buffer=(0,0)
     dots_matrix[1].append(dots_buffer)   
     dots_matrix[1][4]=dots_matrix[1][3]
+
     dots_matrix[1][3] = (
     dots_matrix[1][4][0] - dots_matrix[2][4][0] + dots_matrix[2][3][0],  # x-coordinate
     dots_matrix[1][4][1] - dots_matrix[2][4][1] + dots_matrix[2][3][1]   # y-coordinate
@@ -107,25 +122,44 @@ def getGridmatrix(centers):
 
 def getExtractsections(matrix_dots):
     # Initialize 'sections' as a 4x6 2D list
-    sections = [[None for _ in range(6)] for _ in range(4)]  # Creates a 4x6 list filled with None
-
+    sections = [[None for _ in range(8)] for _ in range(4)]  # Creates a 4x6 list filled with None
     # Assign values to the sections
-    sections[0][0] = matrix_dots[5]
-    sections[0][1] = (matrix_dots[0][1], matrix_dots[1][4], matrix_dots[5][2], matrix_dots[5][3],)
-    sections[1][0] = (matrix_dots[1][0], matrix_dots[1][1], matrix_dots[2][0], matrix_dots[2][1])
-    sections[1][1] = (matrix_dots[1][1], matrix_dots[1][2], matrix_dots[2][1], matrix_dots[2][2])
-    sections[1][2] = (matrix_dots[1][2], matrix_dots[1][3], matrix_dots[2][2], matrix_dots[2][3])
-    sections[1][3] = (matrix_dots[1][3], matrix_dots[1][4], matrix_dots[2][3], matrix_dots[2][4])
-    sections[2][0] = (matrix_dots[2][0], matrix_dots[2][1], matrix_dots[3][0], matrix_dots[3][2])
-    sections[2][1] = (matrix_dots[2][1], matrix_dots[2][2], matrix_dots[3][2], matrix_dots[3][4])
-    sections[2][2] = (matrix_dots[2][2], matrix_dots[2][3], matrix_dots[3][4], matrix_dots[3][6])
-    sections[2][3] = (matrix_dots[2][3], matrix_dots[2][4], matrix_dots[3][6], matrix_dots[3][8])
-    sections[3][0] = (matrix_dots[3][0], matrix_dots[4][0], matrix_dots[3][1], matrix_dots[4][1])
-    sections[3][1] = (matrix_dots[3][1], matrix_dots[4][1], matrix_dots[3][3], matrix_dots[4][2])
-    sections[3][2] = (matrix_dots[3][3], matrix_dots[4][2], matrix_dots[3][4], matrix_dots[4][3])
-    sections[3][3] = (matrix_dots[3][4], matrix_dots[4][3], matrix_dots[3][5], matrix_dots[4][4])
-    sections[3][4] = (matrix_dots[3][5], matrix_dots[4][4], matrix_dots[3][7], matrix_dots[4][5])
-    sections[3][5] = (matrix_dots[3][7], matrix_dots[4][5], matrix_dots[3][8], matrix_dots[4][6])
+    sections[0][0] = sort_to_convex_quadrilateral(matrix_dots[5])
+    sections[0][1] = sort_to_convex_quadrilateral((matrix_dots[0][1], matrix_dots[1][4], matrix_dots[5][2], matrix_dots[5][3]))
+    sections[1][0] = sort_to_convex_quadrilateral((matrix_dots[1][0], matrix_dots[1][1], matrix_dots[2][0], matrix_dots[2][1]))
+    sections[1][1] = sort_to_convex_quadrilateral((matrix_dots[1][1], matrix_dots[1][2], matrix_dots[2][1], matrix_dots[2][2]))
+    sections[1][2] = sort_to_convex_quadrilateral((matrix_dots[1][2], matrix_dots[1][3], matrix_dots[2][2], matrix_dots[2][3]))
+    sections[1][3] = sort_to_convex_quadrilateral((matrix_dots[1][3], matrix_dots[1][4], matrix_dots[2][3], matrix_dots[2][4]))
+    sections[2][0] = sort_to_convex_quadrilateral((matrix_dots[2][0], linearForwardDot(matrix_dots[2][0],matrix_dots[2][1]), 
+                                                   matrix_dots[3][0],linearForwardDot(matrix_dots[3][0],matrix_dots[3][1])))
+    sections[2][1] = sort_to_convex_quadrilateral((matrix_dots[2][1], linearForwardDot(matrix_dots[2][0],matrix_dots[2][1]), 
+                                                   matrix_dots[3][2],linearForwardDot(matrix_dots[3][0],matrix_dots[3][2])))
+    
+    sections[2][2] = sort_to_convex_quadrilateral((matrix_dots[2][1], linearForwardDot(matrix_dots[2][1],matrix_dots[2][2]), 
+                                                   matrix_dots[3][2],linearForwardDot(matrix_dots[3][2],matrix_dots[3][4])))
+    sections[2][3] = sort_to_convex_quadrilateral((matrix_dots[2][2], linearForwardDot(matrix_dots[2][1],matrix_dots[2][2]), 
+                                                   matrix_dots[3][4],linearForwardDot(matrix_dots[3][2],matrix_dots[3][4])))
+    
+    sections[2][4] = sort_to_convex_quadrilateral((matrix_dots[2][2], linearForwardDot(matrix_dots[2][2],matrix_dots[2][3]), 
+                                                   matrix_dots[3][4],linearForwardDot(matrix_dots[3][4],matrix_dots[3][6])))
+    sections[2][5] = sort_to_convex_quadrilateral((matrix_dots[2][3], linearForwardDot(matrix_dots[2][2],matrix_dots[2][3]), 
+                                                   matrix_dots[3][6],linearForwardDot(matrix_dots[3][4],matrix_dots[3][6])))
+    
+    sections[2][6] = sort_to_convex_quadrilateral((matrix_dots[2][3], linearForwardDot(matrix_dots[2][3],matrix_dots[2][4]), 
+                                                   matrix_dots[3][6],linearForwardDot(matrix_dots[3][6],matrix_dots[3][8])))
+    sections[2][7] = sort_to_convex_quadrilateral((matrix_dots[2][4], linearForwardDot(matrix_dots[2][3],matrix_dots[2][4]), 
+                                                   matrix_dots[3][8],linearForwardDot(matrix_dots[3][6],matrix_dots[3][8])))
+    sections[3][0] = sort_to_convex_quadrilateral((matrix_dots[3][0], matrix_dots[4][0], matrix_dots[3][1], matrix_dots[4][1]))
+    sections[3][1] = sort_to_convex_quadrilateral((matrix_dots[3][1], matrix_dots[4][1], matrix_dots[3][3], matrix_dots[4][2]))
+    sections[3][2] = sort_to_convex_quadrilateral((matrix_dots[3][3], matrix_dots[4][2], matrix_dots[3][4], matrix_dots[4][3]))
+    sections[3][3] = sort_to_convex_quadrilateral((matrix_dots[3][4], matrix_dots[4][3], matrix_dots[3][5], matrix_dots[4][4]))
+    sections[3][4] = sort_to_convex_quadrilateral((matrix_dots[3][5], matrix_dots[4][4], matrix_dots[3][7], matrix_dots[4][5]))
+    sections[3][5] = sort_to_convex_quadrilateral((matrix_dots[3][7], matrix_dots[4][5], matrix_dots[3][8], matrix_dots[4][6]))
 
     return sections
+
+if __name__ == "__main__":
+    input_image_path = 'IMG_1581_iter_0.jpg'
+    input_data = 'IMG_1581_iter_0.txt'
+    result_txt_path = 'results_test_2.txt'
 
