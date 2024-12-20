@@ -7,6 +7,8 @@ result_txt_path = 'results_test_2.txt'
 
 centers = image_processing.getNails(input_image_path)
 gridmatrix=grid_info.getGridmatrix(centers)
-section_grid=grid_info.getExtractsections(gridmatrix)
-print(section_grid[3][1])
-visualization.drawDots(input_image_path,section_grid[2][5])
+print("The length of the grid is: ",)
+# section_grid=grid_info.getExtractsections(gridmatrix)
+# print(section_grid[3][1])
+flaten_matrix=grid_info.flattenMatrix(gridmatrix)
+visualization.drawDots(input_image_path,flaten_matrix)
