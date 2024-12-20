@@ -29,7 +29,7 @@ def detect_black_square_centers(image):
             aspect_ratio = w / float(h)
 
             # Kiểm tra tỉ lệ và kích thước khung hình
-            if 0.9 < aspect_ratio < 1.1 and w > 20 and h > 20:
+            if 0.9 < aspect_ratio < 1.1 and w > 15 and h > 15:
                 roi = thresh[y:y+h, x:x+w]
                 black_pixels = cv2.countNonZero(roi)
                 total_pixels = w * h

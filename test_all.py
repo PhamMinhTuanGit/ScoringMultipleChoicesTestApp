@@ -51,7 +51,7 @@ model = EfficientCNN()
 model.load_state_dict(torch.load('/Users/phamminhtuan/Desktop/AIChallenge/cnn.pth', weights_only=True))
 model = model.to(device)
 image_path = "/Users/phamminhtuan/Desktop/Trainning_SET/Images/IMG_1581_iter_0.jpg"
-label_path = "/Users/phamminhtuan/Desktop/Trainning_SET/Labels/IMG_1581_iter_0.txt"
+label_path = "test.txt"
 
 
 def handle_predicted_zero(file_path, label, x1, y1, x2, y2):
