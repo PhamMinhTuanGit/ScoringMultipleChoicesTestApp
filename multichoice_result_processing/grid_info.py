@@ -19,7 +19,7 @@ def getDotsbetween(centers, dot1, dot2, axis=1):
     coord1, coord2 = dot1[axis], dot2[axis]
 
     # Determine the range (min and max values on the chosen axis)
-    coord_min, coord_max = min(coord1, coord2), max(coord1, coord2)
+    coord_min, coord_max = min(coord1, coord2)-0.001, max(coord1, coord2)+0.001
 
     # Filter points with coordinates within the range on the chosen axis
     dots_in_range = [
