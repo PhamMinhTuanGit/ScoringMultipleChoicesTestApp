@@ -18,6 +18,7 @@ def getNails(image_path):
     """
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
     # Threshold the grayscale image
     _, thresh = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
@@ -30,7 +31,7 @@ def getNails(image_path):
 
     for contour in contours:
         # Approximate the contour to a polygon
-        epsilon = 0.04 * cv2.arcLength(contour, True)
+        epsilon = 0.03 * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
 
         # Check if the polygon is a quadrilateral
@@ -39,7 +40,7 @@ def getNails(image_path):
             aspect_ratio = w / float(h)
 
             # Ensure it's a square and of a reasonable size
-            if 0.9 < aspect_ratio < 1.1 and w > 20 and h > 20:
+            if 0.7 < aspect_ratio < 1.25 and w > 12 and h > 12:
                 roi = thresh[y:y+h, x:x+w]
                 black_pixels = cv2.countNonZero(roi)
                 total_pixels = w * h
