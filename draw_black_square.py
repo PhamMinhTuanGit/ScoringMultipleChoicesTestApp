@@ -1,6 +1,6 @@
 import cv2
 
-def draw_rectangles(image_path, centers, rect_width, rect_height, output_path):
+def draw_rectangles(image_path, centers, rect_width, rect_height, output_path, color=(0, 255, 0)):
     """
     Vẽ các hình chữ nhật lên ảnh dựa trên tọa độ trung tâm YOLO.
 
@@ -29,7 +29,7 @@ def draw_rectangles(image_path, centers, rect_width, rect_height, output_path):
         y = int(cy - rect_height / 2)
 
         # Vẽ hình chữ nhật
-        cv2.rectangle(image, (x, y), (x + rect_width, y + rect_height), (0, 255, 0), 2)
+        cv2.rectangle(image, (x, y), (x + rect_width, y + rect_height), color, 2)
 
         # Đánh số thứ tự tại trung tâm hình chữ nhật
         cv2.putText(image, str(idx), (cx - 10, cy - 10),

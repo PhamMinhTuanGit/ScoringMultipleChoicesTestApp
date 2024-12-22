@@ -1,7 +1,7 @@
 from fixed_coordinates import fixed_circle
 from visualize import draw_boxes_from_yolo
 
-input_image_path = r"Image\IMG_1590_iter_7.jpg"
+input_image_path = r"D:\THO\Bach_Khoa\AI Challenge\Data\testset1\testset1\images\IMG_3960_iter_128.jpg"
 output_file = "test.txt"
 
 print(input_image_path)

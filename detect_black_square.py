@@ -16,34 +16,49 @@ ground_truth_lst = [
     (0.0723, 0.0727)
 ]
 
-def match_coordinates(ground_truth_lst, predict_lst, k=0.01):
+def match_coordinates(ground_truth_lst, predict_lst, k=0.05):
     """
-    Compare coordinates in ground_truth_lst with predict_lst and generate result_lst.
-    
+    For each coordinate in ground_truth_lst, find the nearest coordinate in predict_lst.
+    If the distance < k, take the value from predict_lst; otherwise, take the value from ground_truth_lst.
+
     Args:
-        ground_truth_lst (list of tuples): List of ground truth coordinates (x, y).
-        predict_lst (list of tuples): List of predicted coordinates (x, y).
-        k (int): Maximum allowable deviation between coordinates.
-    
+        ground_truth_lst (list of tuples): List of ground truth coordinates as (x, y).
+        predict_lst (list of tuples): List of predicted coordinates as (x, y).
+        k (float): Maximum allowable distance to determine a match.
+
     Returns:
         list: result_lst containing coordinates from predict_lst or ground_truth_lst.
     """
-    result_lst = []  # Initialize the result list
-    
-    for gt_x, gt_y in ground_truth_lst:  # Iterate through ground truth coordinates
-        matched = False  # Flag to check if a match is found
-        
-        for pred_x, pred_y in predict_lst:  # Iterate through predicted coordinates
-            # Check if the predicted coordinate is within the allowable deviation
-            if abs(gt_x - pred_x) <= k and abs(gt_y - pred_y) <= k:
-                result_lst.append((pred_x, pred_y))  # Add the predicted coordinate to result_lst
-                matched = True  # Mark as matched
-                break  # Exit the inner loop
-        
-        if not matched:  # If no match is found
-            result_lst.append((gt_x, gt_y))  # Add the ground truth coordinate to result_lst
-    
-    return result_lst  # Return the final result list
+    result_lst = []
+
+    for gt_x, gt_y in ground_truth_lst:
+        # Find the closest predicted coordinate in predict_lst
+        closest_pred = None
+        min_distance = float('inf')
+
+        for pred_x, pred_y in predict_lst:
+            distance = ((gt_x - pred_x) ** 2 + (gt_y - pred_y) ** 2) ** 0.5
+            if distance < min_distance:
+                min_distance = distance
+                closest_pred = (pred_x, pred_y)
+
+        # Compare the distance with k and choose the appropriate value
+        if closest_pred and min_distance < k:
+            result_lst.append(closest_pred)
+        else:
+            # Find the closest x and y from different points in predict_lst
+            closest_x = min(predict_lst, key=lambda p: abs(p[0] - gt_x))[0]
+            closest_y = None
+
+            for pred_x, pred_y in predict_lst:
+                if pred_x != closest_x:
+                    closest_y = min(predict_lst, key=lambda p: abs(p[1] - gt_y) if p[0] != closest_x else float('inf'))[1]
+                    break
+
+            if closest_x is not None and closest_y is not None:
+                result_lst.append((closest_x, closest_y))
+
+    return result_lst
 
 def getDotsbetween(centers, dot1, dot2, axis=1):
     """
@@ -62,7 +77,7 @@ def getDotsbetween(centers, dot1, dot2, axis=1):
     coord1, coord2 = dot1[axis], dot2[axis]
 
     # Determine the range (min and max values on the chosen axis)
-    coord_min, coord_max = min(coord1, coord2)-0.001, max(coord1, coord2)+0.001
+    coord_min, coord_max = min(coord1, coord2)-0.002, max(coord1, coord2)+0.002
 
     # Filter points with coordinates within the range on the chosen axis
     dots_in_range = [
@@ -159,16 +174,9 @@ def getGridmatrix(centers):
 
     return dots_matrix
 
-
-def detect_black_square_centers(image_path):
-    """
-    Detects black squares in a given image, saves the output, and displays numbered IDs.
-
-    :param image: Input image
-    :return: List of centers of the black squares in YOLOv8 format
-    """
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def detect_black_squares(image, min_width=20, min_height=20, max_width=100, max_height=100):
+    image_copy = image.copy()
+    gray = cv2.cvtColor(image_copy, cv2.COLOR_BGR2GRAY)
 
     # Threshold để phát hiện vùng đen
     _, thresh = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
@@ -178,7 +186,7 @@ def detect_black_square_centers(image_path):
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     centers = []
-    image_height, image_width = image.shape[:2]
+    image_height, image_width = image_copy.shape[:2]
 
     idx = 0  # Khởi tạo bộ đếm
     for contour in contours:
@@ -191,14 +199,14 @@ def detect_black_square_centers(image_path):
             aspect_ratio = w / float(h)
 
             # Kiểm tra tỉ lệ và kích thước khung hình
-            if 0.8 < aspect_ratio < 1.2 and w > 20 and h > 20:
+            if 0.6 < aspect_ratio < 1.4 and w > min_width and w < max_width and h > min_height and h < max_height:
                 roi = thresh[y:y+h, x:x+w]
                 black_pixels = cv2.countNonZero(roi)
                 total_pixels = w * h
                 fill_ratio = black_pixels / total_pixels
 
                 # Kiểm tra mật độ màu đen
-                if fill_ratio > 0.9:
+                if fill_ratio > 0.8:
                     M = cv2.moments(contour)
                     if M["m00"] != 0:
                         center_x = int(M["m10"] / M["m00"])
@@ -208,14 +216,32 @@ def detect_black_square_centers(image_path):
                         yolov8_y = center_y / image_height
 
                         centers.append((yolov8_x, yolov8_y))
-    print(len(centers))
+    return centers
 
-    output_path = "Image/Draw_square.jpg"
+def detect_black_square_centers(image_path):
+    """
+    Detects black squares in a given image, saves the output, and displays numbered IDs.
+
+    :param image: Input image
+    :return: List of centers of the black squares in YOLOv8 format
+    """
+    image = cv2.imread(image_path)
+    centers = detect_black_squares(image)
+
+    print("Number of raw centers: ",len(centers))
+
+    output_path = "Image/Draw_square_raw.jpg"
     draw_rectangles(image_path, centers, 40, 40, output_path)
 
-    gridmatrix=getGridmatrix(centers)
-    flaten_matrix=flattenMatrix(gridmatrix)
-    #print("Flatten: ", flaten_matrix)
+    centers = match_coordinates(ground_truth_lst, centers, 0.07) # Check the coordinate of center (Add missing points)
+
+    output_path = "Image/Add_missing_square.jpg"
+    draw_rectangles(image_path, centers, 40, 40, output_path)
+
+    # Remove redundant points
+    # gridmatrix=getGridmatrix(centers)
+    # flaten_matrix=flattenMatrix(gridmatrix)
+    flaten_matrix = centers
 
     # Sắp xếp các điểm theo tọa độ y giảm dần, nếu y bằng nhau thì theo x giảm dần
     centers_sorted = sorted(flaten_matrix, key=lambda x: (x[1], x[0]), reverse=True)
@@ -224,9 +250,14 @@ def detect_black_square_centers(image_path):
     group_1 = centers_sorted[:7]   # 7 điểm có y lớn nhất
     group_2 = centers_sorted[7:16] # 9 điểm có y lớn tiếp theo
     group_3 = centers_sorted[16:21] # 5 điểm có y lớn tiếp theo
-    group_4 = centers_sorted[21:28] # 7 điểm có y lớn tiếp theo
-    group_5 = centers_sorted[28:30] # 2 điểm có y lớn tiếp theo
-    group_6 = centers_sorted[30:]   # 2 điểm còn lại
+
+    group_4 = centers_sorted[21:27] # 6 điểm có y lớn tiếp theo
+    group_5 = centers_sorted[27:29] # 2 điểm có y lớn tiếp theo
+    group_6 = centers_sorted[29:]   # 2 điểm còn lại
+
+    # group_4 = centers_sorted[21:28] # 7 điểm có y lớn tiếp theo
+    # group_5 = centers_sorted[28:30] # 2 điểm có y lớn tiếp theo
+    # group_6 = centers_sorted[30:]   # 2 điểm còn lại
 
     # Đảm bảo các nhóm đều đã được sắp xếp theo x giảm dần
     group_1_sorted = sorted(group_1, key=lambda x: x[0], reverse=True)
@@ -236,21 +267,28 @@ def detect_black_square_centers(image_path):
     group_5_sorted = sorted(group_5, key=lambda x: x[0], reverse=True)
     group_6_sorted = sorted(group_6, key=lambda x: x[0], reverse=True)
 
-    del group_4_sorted[2] # Remove virtual point
+    #del group_4_sorted[2] # Remove virtual point
 
     # Kết hợp tất cả các nhóm lại theo thứ tự đã yêu cầu
     final_sorted_centers = group_1_sorted + group_2_sorted + group_3_sorted + group_4_sorted + group_5_sorted + group_6_sorted
     #print("Centers of black squares (YOLOv8 format):", final_sorted_centers)
 
-    #final_centers = match_coordinates(ground_truth_lst, final_sorted_centers, 0.01)
+    output_path = "Image/Remove_redundant_square.jpg"
+    draw_rectangles(image_path, final_sorted_centers, 40, 40, output_path)
+
+    test_path1 = "Image/predict_and_ground_truth.jpg"
+    draw_rectangles(output_path, ground_truth_lst, 50, 50, test_path1, (255, 0, 0))
+
+    #final_centers = match_coordinates(ground_truth_lst, final_sorted_centers, 0.07)
     final_centers = final_sorted_centers
 
-    output_path = "Image/Draw_square.jpg"
-    draw_rectangles(image_path, final_centers, 40, 40, output_path)
+    test_path2 = "Image/predict_and_final.jpg"
+    draw_rectangles(output_path, final_centers, 50, 50, test_path2, (255, 0, 0))
 
     #print(len(final_sorted_centers))
     if len(final_centers) != 31:
-        #print("##################################    ERROR     #############################")
+        print("##################################    ERROR     #############################")
+        print("Error image save to error.txt")
         print(len(final_sorted_centers))
         with open('error.txt', 'a') as file:
             file.write(image_path + '\n')  # Ghi thêm một dòng mới

@@ -7,6 +7,7 @@ from utils import convert_to_yolo_format, save_to_txt
 def fixed_circle(input_image_path, output_file):
     image = cv2.imread(input_image_path)
     height, width = image.shape[:2]
+    image_size = (width, height)
 
     final_coordinate = []
     centers = detect_black_square_centers(input_image_path)
@@ -41,12 +42,12 @@ def fixed_circle(input_image_path, output_file):
     final_coordinate = add_points_by_region(image, [19, 18, 10, 12], (0.245, 0.47, 0.07, 0.085), (4, 4), (0.1365, 0.032), centers, final_coordinate) # Phan2_3
     final_coordinate = add_points_by_region(image, [17, 18, 10, 8], (0.245, 0.47, 0.07, 0.085), (4, 4), (0.1365, 0.032), centers, final_coordinate) # Phan2_4
 
-    final_coordinate = add_points_by_region_custom(image, [16, 15, 7, 6], (0.36, 0.37, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate) # Phan3_1
-    final_coordinate = add_points_by_region_custom(image, [13, 15, 5, 6], (0.36, 0.37, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate) # Phan3_2
-    final_coordinate = add_points_by_region_custom(image, [13, 12, 5, 4], (0.36, 0.37, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate) # Phan3_3
-    final_coordinate = add_points_by_region_custom(image, [11, 12, 3, 4], (0.36, 0.37, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate) # Phan3_4
-    final_coordinate = add_points_by_region_custom(image, [11, 9, 3, 2], (0.36, 0.37, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate) # Phan3_5
-    final_coordinate = add_points_by_region_custom(image, [8, 9, 1, 2], (0.36, 0.37, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate) # Phan3_6
+    final_coordinate = add_points_by_region_custom(image, [16, 15, 6, 7], (0.36, 0.375, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate, image_size) # Phan3_1
+    final_coordinate = add_points_by_region_custom(image, [13, 15, 5, 6], (0.36, 0.375, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate, image_size) # Phan3_2
+    final_coordinate = add_points_by_region_custom(image, [13, 12, 5, 4], (0.36, 0.375, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate, image_size) # Phan3_3
+    final_coordinate = add_points_by_region_custom(image, [11, 12, 3, 4], (0.36, 0.375, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate, image_size) # Phan3_4
+    final_coordinate = add_points_by_region_custom(image, [11, 9, 3, 2], (0.36, 0.375, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate, image_size) # Phan3_5
+    final_coordinate = add_points_by_region_custom(image, [8, 9, 1, 2], (0.36, 0.375, 0.1, 0.04), (10, 4), (0.044, 0.017), centers, final_coordinate, image_size) # Phan3_6
 
 
     yolo_bboxes = convert_to_yolo_format(final_coordinate, width, height)
