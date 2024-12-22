@@ -1,24 +1,34 @@
-from fixed_coordinates import fixed_circle
-import utils
-import torchvision 
+import numpy as np
+import pandas as pd
 import cv2
-from torchvision import transforms
-import torch.nn as nn
 import torch
-from train_utils import *
+import torch.nn as nn
+from torchvision import transforms
+from utilities import extract_bubbles, append_to_file
+from image_processing import getNails
+from grid_info import getGridmatrix, getExtractsections
+from fixed_coordinates import fixed_circle
+img_path = "IMG_1581_iter_0.jpg"
+coord_saver = "test.txt"
+fixed_circle(img_path, coord_saver)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class EfficientCNN(nn.Module):
     def __init__(self):
-        """
-        Initializes the EfficientCNN model. This model is an efficient convolutional neural network for the 
-        classification task. It consists of a feature extraction part and a classification part. The feature 
-        extraction part is a convolutional neural network which consists of 3 convolutional layers with 
-        maxpooling, where the number of channels are 32, 64, 128 respectively. The classification part is a 
-        fully connected neural network which consists of 2 fully connected layers with dropout rate 0.5.
-
-        Args:
-            None
-        """
         super(EfficientCNN, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
@@ -40,61 +50,125 @@ class EfficientCNN(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(256, 2)
         )
-    
+
     def forward(self, x):
         x = self.features(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
-device = torch.device("mps")
-model = EfficientCNN()
-model.load_state_dict(torch.load('/Users/phamminhtuan/Desktop/AIChallenge/cnn.pth', weights_only=True))
-model = model.to(device)
-image_path = "/Users/phamminhtuan/Desktop/Trainning_SET/Images/IMG_1581_iter_0.jpg"
-label_path = "test.txt"
 
 
-def handle_predicted_zero(file_path, label, x1, y1, x2, y2):
+class BubbleClassifier:
+    def __init__(self, model, device):
+        self.model = model
+        self.device = device
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize((32, 32))
+        ])
+
+    def classify_bubble(self, bubble_image):
+        input_tensor = self.transform(bubble_image).unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            output = self.model(input_tensor)
+            probs = torch.softmax(output, dim=1)
+            return probs[0, 0].item()  # P(label=0)
+
+    def process_grid_section(self, grid_section, dots):
+        """
+        Classifies bubbles within a grid section.
+
+        :param grid_section: Coordinates of the grid section.
+        :param dots: List of bubble locations in the grid section.
+        :return: List of tuples (x, y, P(label=0)).
+        """
+        results = []
+        for dot in dots:
+            x, y, bubble_img = dot["x"], dot["y"], dot["image"]
+            prob_label_0 = self.classify_bubble(bubble_img)
+            results.append((x, y, prob_label_0))
+        return results
+
+
+def getSubmitResult(input_image_path, input_data, result_txt_path):
     """
-    Ghi thông tin vào file khi predicted == 0.
-    
-    Args:
-        file_path (str): Đường dẫn tới file cần ghi.
-        label (int): Nhãn dự đoán.
-        x1, y1, x2, y2 (int): Tọa độ của hình chữ nhật.
+    Processes an input image and data to extract grid and bubble information and writes results to a text file.
+
+    :param input_image_path: Path to the input image file.
+    :param input_data: Path to the input data file containing bubble information.
+    :param result_txt_path: Path to the output results text file.
     """
-    with open(file_path, 'a') as f:  # Mở file ở chế độ append
-        f.write(f"{label} {x1} {y1} {x2} {y2}\n")
+    try:
+        # Load the pre-trained model
+        device = torch.device("mps") if torch.has_mps else torch.device("cpu")
+        model = EfficientCNN()
+        model.load_state_dict(torch.load('/Users/phamminhtuan/Desktop/AIChallenge/cnn.pth'))
+        model.to(device)
+        model.eval()
 
-picked_output_path = "/Users/phamminhtuan/Desktop/AIChallenge/picked_output.txt"
-image = cv2.imread(image_path)
-labels, coords = read_file_to_tensors(label_path)
-for i, coord in enumerate(coords):
-    xy_coord = find_yolov8_square(image, coord)
-    x1, y1, x2, y2 = xy_coord
-    input = get_box(image, xy_coord)
-    
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize((32, 32))
-    ])
-    input = transform(input)
-    input = input.to(device)
-    output = model(input.unsqueeze(0))
-    _, predicted = torch.max(output.data, 1)
+        # Initialize the BubbleClassifier
+        bubble_classifier = BubbleClassifier(model, device)
 
-    if predicted == 0:
-        # Vẽ hình chữ nhật lên ảnh
-        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        # Predefine configurations for sections
+        sections = [
+            {"name": "SBD", "section_index": (0, 0)},
+            {"name": "MDT", "section_index": (0, 1)},
+            {"name": "phan1_1", "section_index": (1, 0)},
+            {"name": "phan1_2", "section_index": (1, 1)},
+            # Add more sections as needed
+        ]
 
-        # Ghi thông tin vào file picked_output.txt
-        a1, b1, a2, b2 = coord
-        handle_predicted_zero(picked_output_path, int(predicted.item()), a1, b1, a2, b2)
+        # Step 1: Detect nail centers in the image
+        centers = getNails(input_image_path)
 
-cv2.imwrite("/Users/phamminhtuan/Desktop/AIChallenge/avg_coords.jpg", image)
+        # Step 2: Extract grid information from nail centers
+        gridmatrix = getGridmatrix(centers)
+        gridsection = getExtractsections(gridmatrix)
 
-# for i, coord in enumerate(coords):
-#     xy_coord = find_yolov8_square(image, coord)
-#     x1, y1, x2, y2 = xy_coord
-#     cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-# cv2.imwrite("/Users/phamminhtuan/Desktop/AIChallenge/avg_coords.jpg", image)
+        # Step 3: Extract bubble data from input file
+        dots = extract_bubbles(input_data)
+
+        # Step 4: Classify bubbles and write results
+        append_to_file(result_txt_path, input_image_path)
+
+        for section in sections:
+            print(f"Processing {section['name']}...")
+
+            # Get the grid section coordinates
+            grid_section = gridsection[section["section_index"][0]][section["section_index"][1]]
+
+            # Filter dots for this section
+            section_dots = [dot for dot in dots if dot_in_section(dot, grid_section)]
+
+            # Classify bubbles in the section
+            bubble_probs = bubble_classifier.process_grid_section(grid_section, section_dots)
+
+            # Find the bubble with the highest P(label=0)
+            if bubble_probs:
+                highest_prob_bubble = max(bubble_probs, key=lambda x: x[2])  # x[2] is P(label=0)
+                x, y, _ = highest_prob_bubble
+                append_to_file(result_txt_path, f"{section['name']}: ({x}, {y})\n")
+
+    except Exception as e:
+        print(f"Error occurred during processing: {e}")
+
+
+def dot_in_section(dot, grid_section):
+    """
+    Checks if a dot is within the given grid section.
+
+    :param dot: Dictionary with dot coordinates (x, y).
+    :param grid_section: Tuple of grid section coordinates (x1, y1, x2, y2).
+    :return: Boolean, True if dot is in section, False otherwise.
+    """
+    x, y = dot["x"], dot["y"]
+    x1, y1, x2, y2 = grid_section
+    return x1 <= x <= x2 and y1 <= y <= y2
+
+
+# Example usage
+if __name__ == "__main__":
+    input_image_path = '/Users/phamminhtuan/Desktop/Trainning_SET/Images/IMG_1581_iter_0.jpg'
+    input_data = '/Users/phamminhtuan/Desktop/AIChallenge/picked_output.txt'
+    result_txt_path = 'results_test_cnn.txt'
+    getSubmitResult(input_image_path, input_data, result_txt_path)
