@@ -27,12 +27,12 @@ def fixed_circle(input_image_path, output_file):
     centers = detect_black_square_centers(image)
 
     # Add the coordinate of each area
-    final_coordinate = add_points_by_region(image, [29, 28, 27, 26], (0.185, 0.11, 0.09, 0.05), (10, 6), (0.025, 0.037), centers, final_coordinate) # SBD
-    final_coordinate = add_points_by_region_two(image, [28, 26], (0.28, 0.11, 0.125, 0.05), (10, 3), (0.063, 0.037), centers, final_coordinate) #MDT
+    final_coordinate = add_points_by_region(image, [29, 28, 23, 24], (0.185, 0.11, 0.09, 0.05), (10, 6), (0.025, 0.037), centers, final_coordinate) # SBD
+    final_coordinate = add_points_by_region_two(image, [28, 23], (0.28, 0.11, 0.125, 0.05), (10, 3), (0.063, 0.037), centers, final_coordinate) #MDT
 
-    final_coordinate = add_points_by_region(image, [25, 24, 20, 21], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_1
-    final_coordinate = add_points_by_region(image, [23, 24, 20, 19], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_2
-    final_coordinate = add_points_by_region_three(image, [23, 18, 19], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_3
+    final_coordinate = add_points_by_region(image, [27, 26, 20, 21], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_1
+    final_coordinate = add_points_by_region(image, [25, 26, 20, 19], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_2
+    final_coordinate = add_points_by_region_three(image, [25, 18, 19], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_3
     final_coordinate = add_points_by_region_three(image, [22, 18, 17], (0.245, 0.21, 0.07, 0.05), (10, 4), (0.135, 0.0227), centers, final_coordinate) # Phan1_4
 
     final_coordinate = add_points_by_region(image, [21, 20, 14, 16], (0.245, 0.47, 0.07, 0.085), (4, 4), (0.1365, 0.032), centers, final_coordinate) # Phan2_1
