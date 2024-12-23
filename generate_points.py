@@ -72,24 +72,22 @@ def add_points_by_region_custom(image, idx_list, start_coord, grid_size, cell_sp
     x_min, y_min, x_max, y_max = cut_image_from_points(image, points_of_interest)
 
     yolo_boxes = generate_grid_coordinates(start_coord, grid_size, cell_spacing)
-    # yolo_boxes.append((0.36, 0.37-(0.04+0.014)*2, 0.1, 0.04))
-    # yolo_boxes.append((0.36+(0.1+0.044), 0.37-(0.04+0.017), 0.1, 0.04))
-    # yolo_boxes.append((0.36+(0.1+0.044)*2, 0.37-(0.04+0.017), 0.1, 0.04))
+
+    yolo_boxes.append((0.35, 0.261, 0.0158, 0.012)) # Minus mark
+    yolo_boxes.append((0.486, 0.3153, 0.0158, 0.012)) # Comma mark
+    yolo_boxes.append((0.646, 0.3153, 0.0158, 0.012)) # Comma mark
     
     pixel_points = yolo_to_pixel(points_of_interest, image_size)
     # Perform warping and reverse transformation
     warped_image, transformed_boxes_original = warp_perspective_with_reversed_boxes(
         image, pixel_points, yolo_boxes, image_size
     )
-    transformed_boxes_original = convert_to_yolo_format(transformed_boxes_original, image_size[0], image_size[1])
-    # print("yolo boxes: ", yolo_boxes)
-    # print()
-    # print("new boxes: ", transformed_boxes_original)
-    # print()
+    for box in transformed_boxes_original:
+        final_coordinate.append(box)
 
-    size_x = x_max - x_min
-    size_y = y_max - y_min
-    for box in yolo_boxes:
-      final_coordinate.append((x_min + size_x*box[0], y_min + size_y*box[1], int(box[2]*(size_x)), box[3]*size_y))
+    # size_x = x_max - x_min
+    # size_y = y_max - y_min
+    # for box in yolo_boxes:
+    #   final_coordinate.append((x_min + size_x*box[0], y_min + size_y*box[1], int(box[2]*(size_x)), box[3]*size_y))
     
     return final_coordinate
