@@ -108,12 +108,12 @@ class BubbleClassifier:
 
                         # Append each dot's coordinates and size
                         if gap_string == "none":
-                            output_content += f"{x},{y},{width},{height} "
+                            output_content += f" {x},{y},{width},{height}"
                         if gap_string == "a":
-                            output_content += f"{input_string}.{chr(ord('a') + batch_num)} {x},{y},{width},{height} "                            
+                            output_content += f" {input_string}.{chr(ord('a') + batch_num)} {x},{y},{width},{height}"                            
                         if input_string =="1." or input_string=="SBD" or input_string=="MDT":
                             # Append input string and suffix for each dot
-                            output_content += f"{input_string}{batch_num+gap_string+1} {x},{y},{width},{height} "
+                            output_content += f" {input_string}{batch_num+gap_string+1} {x},{y},{width},{height}"
 
             # Write all the constructed content to the file
             with open(output_file, "a") as file:
