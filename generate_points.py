@@ -105,9 +105,9 @@ def add_points_by_region_custom(image, idx_list, start_coord, grid_size, cell_sp
 
     yolo_boxes = generate_grid_coordinates(start_coord, grid_size, cell_spacing)
 
-    yolo_boxes.append((0.35, 0.261, 0.0158, 0.012)) # Minus mark
-    yolo_boxes.append((0.486, 0.3153, 0.0158, 0.012)) # Comma mark
-    yolo_boxes.append((0.646, 0.3153, 0.0158, 0.012)) # Comma mark
+    yolo_boxes.insert(0, (0.646, 0.3153, 0.0158, 0.012)) # Comma mark 2
+    yolo_boxes.insert(0, (0.486, 0.3153, 0.0158, 0.012)) # Comma mark 1
+    yolo_boxes.insert(0, (0.35, 0.261, 0.0158, 0.012)) # Minus mark
     
     pixel_points = yolo_to_pixel(points_of_interest, image_size)
     # Perform warping and reverse transformation
