@@ -101,7 +101,7 @@ def warp_perspective_with_reversed_boxes(image, points_of_interest, yolo_boxes, 
 
 def main():
     # Load the image
-    image_path = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\IMG_3976_iter_0.jpg'
+    image_path = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\IMG_3960_iter_129.jpg'
     image = cv2.imread(image_path)
     img_h, img_w, _ = image.shape
     image_size = (img_w, img_h)
