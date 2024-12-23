@@ -153,12 +153,7 @@ def getBubblesInClass(input_image_path, input_data, section_index, axis = 0, eps
         ]
         return sorted(clustered_batches, key=lambda batch: batch[0][axis + 1])
       
-
-def Process(input_image_path,input_data, model, output_txt_path):
-    device = torch.device("mps")
-    image = cv2.imread(input_image_path)
-
-    sections = [
+sections = [
             {"name": "SBD", "section_index": (0, 0), "axis": 0, "eps": 0.002, "input_string": "SBD", "gap_string": 0},
             {"name": "MDT", "section_index": (0, 1), "axis": 0, "eps": 0.002, "input_string": "MDT", "gap_string": 0},
             {"name": "phan1_1", "section_index": (1, 0), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 0},
@@ -180,34 +175,9 @@ def Process(input_image_path,input_data, model, output_txt_path):
             {"name": "phan3_5", "section_index": (3, 4), "axis": 0, "eps": 0.002, "input_string": "3.5", "gap_string": "none"},
             {"name": "phan3_6", "section_index": (3, 5), "axis": 0, "eps": 0.002, "input_string": "3.6", "gap_string": "none"}
         ]
-    with open(output_txt_path, 'w') as f:
-        for section in sections:
-            Bubbles = getBubblesInClass(input_image_path, input_data, section["section_index"], axis=section["axis"], eps=section["eps"])
-            for Class in Bubbles:
-                max_confidence = -float('inf')
-                best_coords = None   
-                for label in Class:
-                    _, x1, y1, x2, y2 = label
-                    coord = (x1, y1, x2, y2)
-                    x1, y1, x2, y2 = find_yolov8_square(image, coord)
-                    input = get_box(image, (x1, y1, x2, y2))
-                    
-                    transform = transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Resize((32, 32))
-                    ])
-                    model.eval()
-                    input = transform(input).to(device)
-                    output = model(input.unsqueeze(0))
-                    confidence_score = output[0][0].item()  # Access the first element, which is the confidence score
+def Section(sections=sections):
+    return sections
+    
 
-                    # Cập nhật bounding box có confidence cao nhất trong class
-                    if confidence_score > max_confidence:
-                        max_confidence = confidence_score
-                        best_coords = (x1, y1, x2, y2)
-
-                # Sau khi đã tìm được bounding box có confidence cao nhất trong class
-                if best_coords:
-                    x1, y1, x2, y2 = best_coords
-                    # Ghi tọa độ vào file txt
-                    f.write(f"{x1},{y1},{x2},{y2}\n")  # Ghi một dòng tọa độ
+    
+    
