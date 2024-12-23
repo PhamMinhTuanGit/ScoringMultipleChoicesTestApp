@@ -50,7 +50,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
         dots = extract_bubbles(input_data)
 
         # Step 4: Classify bubbles and write results
-        append_to_file(result_txt_path, input_image_path)
+        append_to_file(result_txt_path, input_image_path+" ")
         bubble_classifier = BubbleClassifier(gridsection, dots)
 
         for section in sections:
@@ -63,6 +63,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
                 gap_string=section["gap_string"],
                 output_file=result_txt_path
             )
+        append_to_file(result_txt_path,"\n")
 
     except Exception as e:
         print(f"Error occurred during processing: {e}")
