@@ -10,6 +10,7 @@ import visualization
 from utilities import extract_bubbles, generate_random_colors, append_to_file
 from bubble_classify import BubbleClassifier
 from torchvision import transforms
+from fixed_coordinates import fixed_circle
 def read_file_to_tensors(file_path):
     """
     Reads a text file line by line, extracts labels and coordinates, and converts them into separate tensors.
@@ -114,25 +115,27 @@ def sort_to_convex_quadrilateral(dots):
     sorted_dots = sorted(dots, key=polar_angle)
     return sorted_dots
 def getBubblesInClass(input_image_path, input_data, section_index, axis = 0, eps = 0.002):
-        centers = image_processing.getNails(input_image_path)
-        gridmatrix = grid_info.getGridmatrix(centers)
-        gridsection = grid_info.getExtractsections(gridmatrix)
-        dots = extract_bubbles(input_data)
-        corners = gridsection[section_index[0]][section_index[1]]
-        corners = sort_to_convex_quadrilateral(corners)
-        if len(corners) != 4:
-                raise ValueError("Exactly 4 corners are required to define a quadrilateral.")
+        # centers = image_processing.getNails(input_image_path)
+        # gridmatrix = grid_info.getGridmatrix(centers)
+        # gridsection = grid_info.getExtractsections(gridmatrix)
+        # dots = extract_bubbles(input_data)
+        # corners = gridsection[section_index[0]][section_index[1]]
+        # corners = sort_to_convex_quadrilateral(corners)
+        # 
+        # if len(corners) != 4:
+        #         raise ValueError("Exactly 4 corners are required to define a quadrilateral.")
 
-                # Create a Polygon object using the corners
-        polygon = Polygon(corners)
+        #         # Create a Polygon object using the corners
+        # polygon = Polygon(corners)
 
                 # Filter dots that are inside the polygon (only checking x and y values)
-        inside_dots = [dot for dot in dots if polygon.contains(Point(dot[1], dot[2]))]
+        matrix_coordinate = fixed_circle(input_image_path, output_file = "test.txt")
+        inside_dots = matrix_coordinate[section_index[0]][section_index[1]]
         dots = inside_dots
         values = np.array([dot[axis + 1] for dot in dots]).reshape(-1, 1)
         if axis == 0:
             eps = 0.005
-
+        
         # Apply DBSCAN clustering
         clustering = DBSCAN(eps=eps, min_samples=1).fit(values)
 

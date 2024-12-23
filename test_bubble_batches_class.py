@@ -5,7 +5,7 @@ import utilities
 from bubble_classify import BubbleClassifier
 #input_image_path = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\IMG_3960_iter_0.jpg'
 #input_image_path ="IMG_1581_iter_0.jpg"
-input_image_path="D:\\4_2_AREAS\\Trainning_SET\\Images\\IMG_1581_iter_1.jpg"
+input_image_path="IMG_1581_iter_0.jpg"
 
 # Buoc 1 tim tam
 centers = image_processing.getNails(input_image_path)

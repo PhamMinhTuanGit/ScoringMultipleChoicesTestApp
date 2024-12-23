@@ -1,7 +1,7 @@
 import image_processing
 import grid_info
 import visualization
-input_image_path = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\IMG_3960_iter_0.jpg'
+input_image_path = 'IMG_3960_iter_0.jpg'
 #input_data = 'IMG_1581_iter_0.txt'
 result_txt_path = 'results_test_2.txt'
 
