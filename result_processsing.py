@@ -5,6 +5,7 @@ import grid_info
 import visualization
 from utilities import extract_bubbles, generate_random_colors, append_to_file
 from bubble_classify import BubbleClassifier
+import os
 
 def getSubmitResult(input_image_path, input_data, result_txt_path):
     """
@@ -14,6 +15,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
     :param input_data: Path to the input data file containing bubble information.
     :param result_txt_path: Path to the output results text file.
     """
+    
     try:
         # Predefine configurations for sections
         sections = [
@@ -41,7 +43,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 
         # Step 1: Detect nail centers in the image
         centers = image_processing.getNails(input_image_path)
-        
+        filename = os.path.basename(input_image_path)
         # Step 2: Extract grid information from nail centers
         gridmatrix = grid_info.getGridmatrix(centers)
         gridsection = grid_info.getExtractsections(gridmatrix)
@@ -50,7 +52,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
         dots = extract_bubbles(input_data)
 
         # Step 4: Classify bubbles and write results
-        append_to_file(result_txt_path, input_image_path)
+        append_to_file(result_txt_path, filename)
         bubble_classifier = BubbleClassifier(gridsection, dots)
 
         for section in sections:
@@ -70,8 +72,8 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 
 # Example usage
 if __name__ == "__main__":
-    input_image_path = 'IMG_1581_iter_0.jpg'
-    input_data = 'IMG_1581_iter_0.txt'
+    input_image_path = 'IMG_1581_iter_1.jpg'
+    input_data = 'IMG_1581_iter_1.txt'
     result_txt_path = 'results_test_template.txt'
     
     getSubmitResult(input_image_path, input_data, result_txt_path)
