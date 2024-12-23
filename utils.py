@@ -70,6 +70,17 @@ def convert_to_yolo_format(bboxes, img_width, img_height):
         yolo_bboxes.append((center_x_normalized, center_y_normalized, width_normalized, height_normalized))
     return yolo_bboxes
 
+def yolo_to_pixel(points, img_size):
+    """
+    Convert YOLOv8 normalized coordinates to pixel coordinates.
+    
+    :param points: List of YOLOv8 points [(center_x, center_y, width, height), ...]
+    :param img_size: Tuple (image_width, image_height)
+    :return: List of points in pixel coordinates [(x1, y1), ...]
+    """
+    img_w, img_h = img_size
+    return [(int(x * img_w), int(y * img_h)) for x, y in points]
+
 def save_to_txt(yolo_coordinates_with_class, output_file):
     # Write to txt
     with open(output_file, "w") as file:
