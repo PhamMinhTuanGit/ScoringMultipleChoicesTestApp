@@ -101,7 +101,9 @@ def warp_perspective_with_reversed_boxes(image, points_of_interest, yolo_boxes, 
 
 def main():
     # Load the image
-    image_path = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\IMG_3960_iter_129.jpg'
+    #image_path = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\IMG_3976_iter_0.jpg'
+    image_path ="IMG_3960_iter_129.jpg"
+    #image_path="IMG_3960_iter_15.jpg"
     image = cv2.imread(image_path)
     img_h, img_w, _ = image.shape
     image_size = (img_w, img_h)
@@ -118,16 +120,16 @@ def main():
     visualization.drawDots(image_path, flat_matrix)
 
     # Example: Select points of interest for warping
-    points_of_interest = yolo_to_pixel(section_grid[3][0], image_size)
+    points_of_interest = yolo_to_pixel(section_grid[3][2], image_size)
 
     # Generate YOLO grid boxes
-    yolo_boxes = generate_grid_coordinates((0.344, 0.262, 0.0158, 0.012), (12, 4), (0.132, 0.046))
+    yolo_boxes = generate_grid_coordinates((0.344, 0.261, 0.0158, 0.012), (12, 4), (0.132, 0.046))
 
     # Perform warping and reverse transformation
     warped_image, transformed_boxes_original = warp_perspective_with_reversed_boxes(
         image, points_of_interest, yolo_boxes, image_size
     )
-
+    # visualization.drawDots(image_path,grid_info.flattenMatrix(transformed_boxes_original),"draw_warp_centers")
     # Visualize the transformed points and boxes on the image
     visualize_results(image, points_of_interest, transformed_boxes_original)
 
@@ -150,6 +152,7 @@ def visualize_results(image, points_of_interest, transformed_boxes_original):
 
     # Draw transformed boxes (green rectangles)
     for x, y, w, h in transformed_boxes_original:
+        cv2.circle(image, (int(x), int(y)), radius=3, color=(0, 0, 255), thickness=-1)  # Red dots
         top_left = (int(x - w / 2), int(y - h / 2))
         bottom_right = (int(x + w / 2), int(y + h / 2))
         cv2.rectangle(image, top_left, bottom_right, (0, 255, 0), 2)  # Green boxes
