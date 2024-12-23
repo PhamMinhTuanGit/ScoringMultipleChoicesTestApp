@@ -4,8 +4,8 @@ import grid_info
 import visualization
 
 # Directories
-input_dir = 'D:\\4_2_AREAS\\testset1\\testset1\\images\\'
-output_dir = 'D:\\4_2_AREAS\\testset1\\testset1\\centers\\'
+input_dir = 'D:\\4_2_AREAS\\Trainning_SET\\Images'
+output_dir = 'D:\\4_2_AREAS\\Training_SET\\centers\\'
 
 # Ensure the output directory exists
 if not os.path.exists(output_dir):
