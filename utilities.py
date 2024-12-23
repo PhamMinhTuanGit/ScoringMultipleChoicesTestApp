@@ -41,6 +41,6 @@ def append_to_file(file_path, string_to_append):
     """
     try:
         with open(file_path, "a") as file:  # Open the file in append mode
-            file.write(string_to_append +" ")  # Append the string with a newline
+            file.write(string_to_append)  # Append the string with a newline
     except Exception as e:
         print(f"Error occurred while appending to the file: {e}")
