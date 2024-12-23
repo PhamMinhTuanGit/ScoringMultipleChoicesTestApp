@@ -11,6 +11,7 @@ from utilities import extract_bubbles, generate_random_colors, append_to_file
 from bubble_classify import BubbleClassifier
 from torchvision import transforms
 from fixed_coordinates import fixed_circle
+import os
 def read_file_to_tensors(file_path):
     """
     Reads a text file line by line, extracts labels and coordinates, and converts them into separate tensors.
@@ -178,6 +179,49 @@ sections = [
 def Section(sections=sections):
     return sections
     
-
+def get_files_with_prefix(directory, prefix="IMG"):
+    """
+    Tạo danh sách các tệp trong thư mục có tiền tố cụ thể.
     
+    :param directory: Đường dẫn tới thư mục cần kiểm tra.
+    :param prefix: Tiền tố cần lọc (mặc định là "IMG").
+    :return: Danh sách tên các tệp có tiền tố.
+    """
+    try:
+        # Lấy danh sách tệp trong thư mục
+        all_files = os.listdir(directory)
+        
+        # Lọc các tệp có tiền tố cụ thể
+        filtered_files = [file for file in all_files if file.startswith(prefix) and os.path.isfile(os.path.join(directory, file))]
+        
+        return filtered_files
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")
+        return []
+def get_prefixes_with_two_underscores(directory):
+    """
+    Lấy danh sách các tiền tố xuất hiện trong tên file đến dấu gạch dưới thứ 2.
     
+    :param directory: Đường dẫn tới thư mục cần kiểm tra.
+    :return: Danh sách các tiền tố (không trùng lặp).
+    """
+    try:
+        # Lấy danh sách tệp trong thư mục
+        all_files = os.listdir(directory)
+        
+        # Tách tiền tố đến dấu gạch dưới thứ 2
+        prefixes = set()
+        for file in all_files:
+            if os.path.isfile(os.path.join(directory, file)):
+                # Loại bỏ phần mở rộng và tách tiền tố
+                file_name = file.split('.')[0]
+                if '_' in file_name:
+                    parts = file_name.split('_')
+                    if len(parts) >= 2:  # Đảm bảo có ít nhất 2 phần
+                        prefix = '_'.join(parts[:2])  # Lấy đến dấu gạch dưới thứ 2
+                        prefixes.add(prefix)
+        
+        return list(prefixes)
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")
+        return []
