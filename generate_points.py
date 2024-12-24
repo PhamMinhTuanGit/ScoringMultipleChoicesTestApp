@@ -6,7 +6,7 @@ from warp_perspective import warp_perspective_with_reversed_boxes
 
 def insert_element(matrix, row, col, element):
     """
-    Chèn phần tử mới vào ma trận ôô tròn.
+    Chèn phần tử mới vào ma trận ô tròn.
 
     Args:
         matrix (list): Ma trận ban đầu.
@@ -49,8 +49,8 @@ def add_points_by_region_two(image, idx_list, start_coord, grid_size, cell_spaci
     points_of_interest = [
         centers[idx_list[0]-1],  # Point 1
         centers[idx_list[1]-1],  # Point 2
-        (centers[idx_list[0]-1][0]+0.09, centers[idx_list[0]-1][1]),  # Point 3
-        (centers[idx_list[1]-1][0]+0.09, centers[idx_list[1]-1][1])   # Point 4
+        (centers[idx_list[0]-1][0]+0.1, centers[idx_list[0]-1][1]),  # Point 3
+        (centers[idx_list[1]-1][0]+0.1, centers[idx_list[1]-1][1])   # Point 4
     ]
 
     x_min, y_min, x_max, y_max = cut_image_from_points(image, points_of_interest)
@@ -105,9 +105,9 @@ def add_points_by_region_custom(image, idx_list, start_coord, grid_size, cell_sp
 
     yolo_boxes = generate_grid_coordinates(start_coord, grid_size, cell_spacing)
 
-    yolo_boxes.insert(0, (0.646, 0.3153, 0.0158, 0.012)) # Comma mark 2
-    yolo_boxes.insert(0, (0.486, 0.3153, 0.0158, 0.012)) # Comma mark 1
-    yolo_boxes.insert(0, (0.35, 0.261, 0.0158, 0.012)) # Minus mark
+    yolo_boxes.insert(0, (0.6462, 0.3153, 0.0158, 0.012)) # Comma mark 2
+    yolo_boxes.insert(0, (0.4862, 0.3153, 0.0158, 0.012)) # Comma mark 1
+    yolo_boxes.insert(0, (0.351, 0.261, 0.0158, 0.012)) # Minus mark
     
     pixel_points = yolo_to_pixel(points_of_interest, image_size)
     # Perform warping and reverse transformation
