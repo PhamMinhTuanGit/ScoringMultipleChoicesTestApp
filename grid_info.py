@@ -114,17 +114,17 @@ def getGridmatrix(centers):
 
     # Get the smallest and second smallest y-value points
     smallest_and_second_smallest_y = leftover_sorted_by_y[:2] if len(leftover_sorted_by_y) >= 2 else []
-    print("The smallest_and second smallest",smallest_and_second_smallest_y)
+    #print("The smallest_and second smallest",smallest_and_second_smallest_y)
     # Find 2 nearest points to any point with y < dots_matrix[1][0]
     reference_y = dots_matrix[1][0][1]-0.004
     smaller_y_points = [point for point in leftover_points if point[1] < reference_y]
     nearest_points = sorted(smaller_y_points, key=lambda p: abs(p[1] - reference_y))[:2]
-    print("nearest point is",nearest_points)
+    #print("nearest point is",nearest_points)
     # Append the specific leftover points to the matrix
     dots_matrix.append(smallest_and_second_smallest_y)
     dots_matrix[5].append(nearest_points[0])
     dots_matrix[5].append(nearest_points[1])
-    print("The dotmatrix5 is ",dots_matrix[5])
+    #print("The dotmatrix5 is ",dots_matrix[5])
     return dots_matrix
 
 def getExtractsections(matrix_dots):
