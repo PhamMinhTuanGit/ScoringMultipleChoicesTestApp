@@ -116,7 +116,7 @@ def getGridmatrix(centers):
     smallest_and_second_smallest_y = leftover_sorted_by_y[:2] if len(leftover_sorted_by_y) >= 2 else []
     print("The smallest_and second smallest",smallest_and_second_smallest_y)
     # Find 2 nearest points to any point with y < dots_matrix[1][0]
-    reference_y = dots_matrix[1][0][1]
+    reference_y = dots_matrix[1][0][1]-0.004
     smaller_y_points = [point for point in leftover_points if point[1] < reference_y]
     nearest_points = sorted(smaller_y_points, key=lambda p: abs(p[1] - reference_y))[:2]
     print("nearest point is",nearest_points)
