@@ -231,12 +231,12 @@ def detect_black_square_centers(image_path):
     print("Number of raw centers: ",len(centers))
 
     output_path = "Image/Draw_square_raw.jpg"
-    draw_rectangles(image_path, centers, 40, 40, output_path)
+    #draw_rectangles(image_path, centers, 40, 40, output_path)
 
     centers = match_coordinates(ground_truth_lst, centers, 0.07) # Check the coordinate of center (Add missing points)
 
     output_path = "Image/Add_missing_square.jpg"
-    draw_rectangles(image_path, centers, 40, 40, output_path)
+    #draw_rectangles(image_path, centers, 40, 40, output_path)
 
     # Remove redundant points
     # gridmatrix=getGridmatrix(centers)
@@ -274,16 +274,16 @@ def detect_black_square_centers(image_path):
     #print("Centers of black squares (YOLOv8 format):", final_sorted_centers)
 
     output_path = "Image/Remove_redundant_square.jpg"
-    draw_rectangles(image_path, final_sorted_centers, 40, 40, output_path)
+    #draw_rectangles(image_path, final_sorted_centers, 40, 40, output_path)
 
     test_path1 = "Image/predict_and_ground_truth.jpg"
-    draw_rectangles(output_path, ground_truth_lst, 50, 50, test_path1, (255, 0, 0))
+    #draw_rectangles(output_path, ground_truth_lst, 50, 50, test_path1, (255, 0, 0))
 
     #final_centers = match_coordinates(ground_truth_lst, final_sorted_centers, 0.07)
     final_centers = final_sorted_centers
 
     test_path2 = "Image/predict_and_final.jpg"
-    draw_rectangles(output_path, final_centers, 50, 50, test_path2, (255, 0, 0))
+    #draw_rectangles(output_path, final_centers, 50, 50, test_path2, (255, 0, 0))
 
     #print(len(final_sorted_centers))
     if len(final_centers) != 31:
