@@ -43,17 +43,23 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 
         # Step 1: Detect nail centers in the image
         centers = detect_black_square.detect_black_square_centers(input_image_path)
+        print("Centers:", centers)
         filename = os.path.basename(input_image_path)
         # Step 2: Extract grid information from nail centers
         gridmatrix = grid_info.getGridmatrix(centers)
+        print("Grid matrix:", gridmatrix)
         gridsection = grid_info.getExtractsections(gridmatrix)
-
+        print("Grid sections:", gridsection)
         # Step 3: Extract bubble data from input file
         dots = extract_bubbles(input_data)
-
+        print("Dots:", dots)
         # Step 4: Classify bubbles and write results
         append_to_file(result_txt_path, filename)
         bubble_classifier = BubbleClassifier(gridsection, dots)
+        
+        
+        
+        
 
         for section in sections:
             print(f"Processing {section['name']}...")
@@ -72,7 +78,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 
 # Example usage
 if __name__ == "__main__":
-    input_image_path = 'IMG_1581_iter_1.jpg'
+    input_image_path = "/Users/phamminhtuan/Downloads/testset1/images/IMG_3967_iter_1.jpg"
     input_data = 'IMG_1581_iter_1.txt'
     result_txt_path = 'results_test_template.txt'
     
