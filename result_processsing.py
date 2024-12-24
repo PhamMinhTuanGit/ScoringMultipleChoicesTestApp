@@ -12,7 +12,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
     Processes an input image and data to extract grid and bubble information and writes results to a text file.
 
     :param input_image_path: Path to the input image file.
-    :param input_data: Path to the input data file containing bubble information.
+    :param input_data: Tuple with the format like the txt file [() () () () ()]
     :param result_txt_path: Path to the output results text file.
     """
     
@@ -43,26 +43,20 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 
         # Step 1: Detect nail centers in the image
         centers = detect_black_square.detect_black_square_centers(input_image_path)
-        print("Centers:", centers)
+        #print("Centers:", centers)
         filename = os.path.basename(input_image_path)
         # Step 2: Extract grid information from nail centers
         gridmatrix = grid_info.getGridmatrix(centers)
-        print("Grid matrix:", gridmatrix)
+        #print("Grid matrix:", gridmatrix)
         gridsection = grid_info.getExtractsections(gridmatrix)
-        print("Grid sections:", gridsection)
+        #print("Grid sections:", gridsection)
         # Step 3: Extract bubble data from input file
-        dots = extract_bubbles(input_data)
-        print("Dots:", dots)
+        dots = input_data
+        #print("Dots:", dots)
         # Step 4: Classify bubbles and write results
         append_to_file(result_txt_path, filename)
         bubble_classifier = BubbleClassifier(gridsection, dots)
-        
-        
-        
-        
-
         for section in sections:
-            print(f"Processing {section['name']}...")
             bubble_classifier.process_grid_section(
                 section_index=section["section_index"],
                 axis=section["axis"],
@@ -71,6 +65,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
                 gap_string=section["gap_string"],
                 output_file=result_txt_path
             )
+            print(f"Processed {section['name']}...")
         append_to_file(result_txt_path,"\n")
 
     except Exception as e:
@@ -78,8 +73,8 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
 
 # Example usage
 if __name__ == "__main__":
-    input_image_path = "/Users/phamminhtuan/Downloads/testset1/images/IMG_3967_iter_1.jpg"
-    input_data = 'IMG_1581_iter_1.txt'
+    input_image_path = "IMG_1581_iter_1.jpg"
+    input_data = extract_bubbles('IMG_1581_iter_1.txt')
     result_txt_path = 'results_test_template.txt'
     
     getSubmitResult(input_image_path, input_data, result_txt_path)
