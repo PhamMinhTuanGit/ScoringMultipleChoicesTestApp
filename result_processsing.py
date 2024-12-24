@@ -6,7 +6,7 @@ import visualization
 from utilities import extract_bubbles, generate_random_colors, append_to_file
 from bubble_classify import BubbleClassifier
 import os
-
+import detect_black_square
 def getSubmitResult(input_image_path, input_data, result_txt_path):
     """
     Processes an input image and data to extract grid and bubble information and writes results to a text file.
@@ -42,7 +42,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
         ]
 
         # Step 1: Detect nail centers in the image
-        centers = image_processing.getNails(input_image_path)
+        centers = detect_black_square.detect_black_square_centers(input_image_path)
         filename = os.path.basename(input_image_path)
         # Step 2: Extract grid information from nail centers
         gridmatrix = grid_info.getGridmatrix(centers)
