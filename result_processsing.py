@@ -54,7 +54,7 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
         dots = extract_bubbles(input_data)
         print("Dots:", dots)
         # Step 4: Classify bubbles and write results
-        append_to_file(result_txt_path, filename)
+        append_to_file(result_txt_path, filename+' ')
         bubble_classifier = BubbleClassifier(gridsection, dots)
         
         

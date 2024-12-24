@@ -17,12 +17,13 @@ model = Model()
 # Your existing loop where you get the output from the model
 folder_path = "/Users/phamminhtuan/Downloads/testset1/images"
 coord_saver = "test.txt"
-result_txt_path = 'results_test_fix_bug.txt'
+result_txt_path = 'results_test_cnn.txt'
 folder_path = "/Users/phamminhtuan/Downloads/testset1/images"
 # for prefix in prefixes:
 #     common_prefix_files = get_files_with_prefix(folder_path, prefix=prefix)
 for filename in os.listdir(folder_path):
-     if filename.startswith("IMG_3967"):
+     if filename.startswith("z6020062307339"):
+        picked_coord = []
         input_path = os.path.join(folder_path, filename)
         fixed_circle(input_path, coord_saver)
         labels, coords = read_file_to_tensors(coord_saver)
@@ -44,9 +45,8 @@ for filename in os.listdir(folder_path):
                     output = model(input.unsqueeze(0))
                     _, predicted = torch.max(output, 1)
                     if(predicted == 0):
-                        x1,y1,x2,y2 = coord
-                        with open("temp.txt", 'a') as f:     
-                            f.write(f"0 {x1} {y1} {x2} {y2}\n")  # Ghi một dòng tọa độ
-        getSubmitResult(input_path, "temp.txt", result_txt_path)         
+                        
+                        picked_coord.append(coord)
+        getSubmitResult(input_path, picked_coord, result_txt_path)         
 
                     
