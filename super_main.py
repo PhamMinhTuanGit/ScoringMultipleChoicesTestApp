@@ -22,31 +22,35 @@ folder_path = "/Users/phamminhtuan/Downloads/testset1/images"
 # for prefix in prefixes:
 #     common_prefix_files = get_files_with_prefix(folder_path, prefix=prefix)
 for filename in os.listdir(folder_path):
-     if filename.startswith("z6020062307339"):
+    if filename.startswith("z6020062307339"):
         picked_coord = []
+        with open("temp.txt", 'w') as file:
+            pass
+        with open("test.txt", 'w') as file:
+            pass
         input_path = os.path.join(folder_path, filename)
         fixed_circle(input_path, coord_saver)
         labels, coords = read_file_to_tensors(coord_saver)
+
+        # Chuyển coords từ tensor sang list
+        coords = coords.tolist()
+
         image = cv2.imread(input_path)
         h, w = image.shape[:2]
-        with open("temp.txt", 'w') as file:
-                pass
-        with open("test.txt", 'w') as file:
-                pass
-        for i, coord in enumerate(coords):
-                    xy_coord = find_yolov8_square(image, coord)
-                    x1, y1, x2, y2 = xy_coord
-                    input = get_box(image, xy_coord)
-                    transform = transforms.Compose([
-                    transforms.ToTensor(),
-                    transforms.Resize((32, 32))
-                    ])
-                    input = transform(input).to(device)
-                    output = model(input.unsqueeze(0))
-                    _, predicted = torch.max(output, 1)
-                    if(predicted == 0):
-                        
-                        picked_coord.append(coord)
-        getSubmitResult(input_path, picked_coord, result_txt_path)         
 
-                    
+        for i in range(len(coords)):
+            xy_coord = find_yolov8_square(image, coords[i])
+            x1, y1, x2, y2 = coords[i]
+            input = get_box(image, xy_coord)
+            transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize((32, 32))
+            ])
+            input = transform(input).to(device)
+            output = model(input.unsqueeze(0))
+            _, predicted = torch.max(output, 1)
+            if predicted == 0:
+                # Thêm tuple (0, x1, y1, x2, y2) vào danh sách
+                picked_coord.append((0, x1, y1, x2, y2))
+
+        getSubmitResult(input_path, picked_coord, result_txt_path)
