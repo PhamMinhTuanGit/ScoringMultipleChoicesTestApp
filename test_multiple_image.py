@@ -2,7 +2,7 @@ from fixed_coordinates import fixed_circle
 from visualize import draw_boxes_from_txt
 import os
 
-folder_path = r"D:\THO\Bach_Khoa\AI Challenge\Data\testset1\testset1\images"
+folder_path = r"D:\THO\Bach_Khoa\AI Challenge\Data\testset2\images"
 output_file = "test.txt"
 
 with open('error.txt', 'w') as file:
