@@ -1,140 +1,104 @@
-import numpy as np
-import pandas as pd
-import cv2
 import torch
-import torch.nn as nn
-from torchvision import transforms
-from utilities import extract_bubbles, append_to_file
-from image_processing import getNails
-from grid_info import getGridmatrix, getExtractsections
-from fixed_coordinates import fixed_circle
-import pytorch_lightning as pl
+from model import Model
+import cv2
+from fixed_coordinates import *
 import os
-from utilities import extract_bubbles, generate_random_colors, append_to_file
-from train_utils import Process
-folder_path = "/Users/phamminhtuan/Downloads/Trainning_SET/Images"
+from train_utils import *
+from result_processsing import *
+from bubble_classify import *
+with open("temp.txt", 'w') as file:
+        pass
+with open("test.txt", 'w') as file:
+        pass
+with open("results_test_cnn.txt", 'w') as file:
+        pass
+device = torch.device("mps")
+sections = Section()
+model = Model().to(device)
+# Your existing loop where you get the output from the model
+sections = [
+            {"name": "SBD", "section_index": (0, 0), "axis": 0, "eps": 0.002, "input_string": "SBD", "gap_string": 0},
+            {"name": "MDT", "section_index": (0, 1), "axis": 0, "eps": 0.002, "input_string": "MDT", "gap_string": 0},
+            {"name": "phan1_1", "section_index": (1, 0), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 0},
+            {"name": "phan1_2", "section_index": (1, 1), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 10},
+            {"name": "phan1_3", "section_index": (1, 2), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 20},
+            {"name": "phan1_4", "section_index": (1, 3), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 30},
+            {"name": "phan2_1", "section_index": (2, 0), "axis": 1, "eps": 0.002, "input_string": "2.1", "gap_string": "a"},
+            {"name": "phan2_2", "section_index": (2, 1), "axis": 1, "eps": 0.002, "input_string": "2.2", "gap_string": "a"},
+            {"name": "phan2_3", "section_index": (2, 2), "axis": 1, "eps": 0.002, "input_string": "2.3", "gap_string": "a"},
+            {"name": "phan2_4", "section_index": (2, 3), "axis": 1, "eps": 0.002, "input_string": "2.4", "gap_string": "a"},
+            {"name": "phan2_5", "section_index": (2, 4), "axis": 1, "eps": 0.002, "input_string": "2.5", "gap_string": "a"},
+            {"name": "phan2_6", "section_index": (2, 5), "axis": 1, "eps": 0.002, "input_string": "2.6", "gap_string": "a"},
+            {"name": "phan2_7", "section_index": (2, 6), "axis": 1, "eps": 0.002, "input_string": "2.7", "gap_string": "a"},
+            {"name": "phan2_8", "section_index": (2, 7), "axis": 1, "eps": 0.002, "input_string": "2.8", "gap_string": "a"},
+            {"name": "phan3_1", "section_index": (3, 0), "axis": 0, "eps": 0.002, "input_string": "3.1", "gap_string": "none"},
+            {"name": "phan3_2", "section_index": (3, 1), "axis": 0, "eps": 0.002, "input_string": "3.2", "gap_string": "none"},
+            {"name": "phan3_3", "section_index": (3, 2), "axis": 0, "eps": 0.002, "input_string": "3.3", "gap_string": "none"},
+            {"name": "phan3_4", "section_index": (3, 3), "axis": 0, "eps": 0.002, "input_string": "3.4", "gap_string": "none"},
+            {"name": "phan3_5", "section_index": (3, 4), "axis": 0, "eps": 0.002, "input_string": "3.5", "gap_string": "none"},
+            {"name": "phan3_6", "section_index": (3, 5), "axis": 0, "eps": 0.002, "input_string": "3.6", "gap_string": "none"}
+        ]
 coord_saver = "test.txt"
-# Model
-class DepthwiseSeparableConv(nn.Module):
-    def __init__(self, in_channels, out_channels, stride=1):
-        super(DepthwiseSeparableConv, self).__init__()
-        # Depthwise convolution
-        self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=stride, padding=1, groups=in_channels, bias=False)
-        self.bn1 = nn.BatchNorm2d(in_channels)
-
-        # Pointwise convolution
-        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=False)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-
-    def forward(self, x):
-        x = torch.nn.functional.relu6(self.bn1(self.depthwise(x)))
-        x = torch.nn.functional.relu6(self.bn2(self.pointwise(x)))
-        return x
-class MobileNet(nn.Module):
-    def __init__(self, num_classes=1000):
-        super(MobileNet, self).__init__()
-
-        def conv_bn(in_channels, out_channels, stride):
-            return nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, 3, stride, 1, bias=False),
-                nn.BatchNorm2d(out_channels),
-                nn.ReLU6(inplace=True)
-            )
-
-        self.model = nn.Sequential(
-            conv_bn(3, 32, 2),  # input size: 32x32x3, output size: 16x16x32
-            DepthwiseSeparableConv(32, 64, 1),  # output size: 16x16x64
-            DepthwiseSeparableConv(64, 128, 2), # output size: 8x8x128
-            DepthwiseSeparableConv(128, 128, 1),# output size: 8x8x128
-            DepthwiseSeparableConv(128, 256, 2),# output size: 4x4x256
-            DepthwiseSeparableConv(256, 256, 1),# output size: 4x4x256
-            DepthwiseSeparableConv(256, 512, 2),# output size: 2x2x512
-            DepthwiseSeparableConv(512, 512, 1),# 5x repeated, output size: 2x2x512
-            DepthwiseSeparableConv(512, 512, 1),
-            DepthwiseSeparableConv(512, 512, 1),
-            DepthwiseSeparableConv(512, 512, 1),
-            DepthwiseSeparableConv(512, 512, 1),
-            DepthwiseSeparableConv(512, 1024, 2),# output size: 1x1x1024
-            DepthwiseSeparableConv(1024, 1024, 1),# output size: 1x1x1024
-            nn.AdaptiveAvgPool2d(1), # output size: 1x1x1024
-        )
-        self.fc = nn.Linear(1024, num_classes)
-
-    def forward(self, x):
-        x = self.model(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-        x = torch.sigmoid(x)
-        return x
-
-# Khởi tạo mô hình
-model = MobileNet(num_classes=2)  # Chuyển mô hình sang GPU nếu có
-
-class CroatianFishClassifier(pl.LightningModule):
-    def __init__(self, num_classes = 2):
-        super(CroatianFishClassifier, self).__init__()
-        self.model = model
-        self.train_accuracies = []
-
-    def forward(self, x):
-        return self.model(x)
-
-    def training_step(self, batch, batch_idx):
-        images, labels = batch
-        logits = self(images)
-        loss = torch.nn.functional.cross_entropy(logits, labels)
-        acc = self.accuracy(logits, labels)
-        self.log('train_loss', loss, prog_bar=True)
-        self.log('train_acc', acc, prog_bar=True)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        images, labels = batch
-        logits = self(images)
-        loss = torch.nn.functional.cross_entropy(logits, labels)
-        acc = self.accuracy(logits, labels)
-        self.log('val_loss', loss, prog_bar=True)
-        self.log('val_acc', acc, prog_bar=True)
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=5e-4)
-
-    def accuracy(self, logits, labels):
-        _, predicted = torch.max(logits.data, 1)
-        correct = (predicted == labels).sum().item()
-        total = labels.size(0)
-        out = correct / total
-        return out
-
-    def test_step(self, batch, batch_idx):
-        images, labels = batch
-        logits = self(images)
-        loss = torch.nn.functional.cross_entropy(logits, labels)
-        acc = self.accuracy(logits, labels)
-        self.log('test_loss', loss, prog_bar=True)
-        self.log('test_acc', acc, prog_bar=True)
-        return {'test_loss': loss, 'test_acc': acc}
-# Kiểm tra checkpoint tốt nhất
-best_checkpoint_path = "/Users/phamminhtuan/Desktop/AIChallenge/lightning_logs/version_8/checkpoints/best-checkpoint.ckpt"
-if best_checkpoint_path:
-    print(f"Loading best checkpoint from: {best_checkpoint_path}")
-    
-    # Load mô hình từ checkpoint (gọi trực tiếp trên class)
-    model = CroatianFishClassifier.load_from_checkpoint(best_checkpoint_path)
-    
-    # Chuyển mô hình sang chế độ đánh giá
-    model.eval()
-    model.freeze()
-else:
-    print("No best checkpoint found!")
-
-
-
-
+result_txt_path = 'results_test_cnn.txt'
+folder_path = "/Users/phamminhtuan/Downloads/testset1/images"
+# for prefix in prefixes:
+#     common_prefix_files = get_files_with_prefix(folder_path, prefix=prefix)
 for filename in os.listdir(folder_path):
-    if filename.endswith("iter_1.jpg"):
-        image_path = os.path.join(folder_path, filename)
-        img = cv2.imread(image_path)
-        fixed_circle(image_path, coord_saver)
-        Process(input_image_path=image_path,input_data = coord_saver, model = model, output_txt_path="temp.txt")
+        picked_coord = []
+        with open("temp.txt", 'w') as file:
+            pass
+        with open("test.txt", 'w') as file:
+            pass
+        input_path = os.path.join(folder_path, filename)
+        fixed_circle(input_path, coord_saver)
+        # labels, coords = read_file_to_tensors(coord_saver)
+        image = cv2.imread(input_path)
+        h, w = image.shape[:2]
+        input_data = extract_bubbles(coord_saver)
+        # Step 1: Detect nail centers in the image
+        centers = detect_black_square.detect_black_square_centers(input_path)
+        #print("Centers:", centers)
+        filename = os.path.basename(input_path)
+        # Step 2: Extract grid information from nail centers
+        gridmatrix = grid_info.getGridmatrix(centers)
+        #print("Grid matrix:", gridmatrix)
+        gridsection = grid_info.getExtractsections(gridmatrix)
+        #print("Grid sections:", gridsection)
+        # Step 3: Extract bubble data from input file
+        dots = input_data
+        bubble_classifier = BubbleClassifier(gridsection, dots)
 
+
+        for section in sections:
+                corners = gridsection[section["section_index"][0]][section["section_index"][1]]
+                dots_inside = bubble_classifier.dots_in_quadrilateral(corners)
+                clustered = bubble_classifier.classify_batches(dots_inside, axis=section["axis"], eps=section["eps"])
+            # Chuyển coords từ tensor sang list
+                for i in range(len(clustered)):
+                    best_val = -99999
+                    largest_prob_dot = None
+                    for j in range(len(clustered[i])):
+                            coord = clustered[i][j]
+                            _, x1,y1,x2,y2 = coord
+                            xy_coord = find_yolov8_square(image, (x1,y1,x2,y2))
+                            
+                        
+                            input = get_box(image, xy_coord)
+                            transform = transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Resize((32, 32))
+                            ])
+                            input = transform(input).to(device)
+                            output = model(input.unsqueeze(0))
+                            # _, predicted = torch.max(output, 1)
+                            temp = output[0][0].item()
+                            if temp > best_val:
+                                # Thêm tuple (0, x1, y1, x2, y2) vào danh sách
+                                best_val = temp
+                                largest_prob_dot = (x1, y1, x2, y2)
+                                
+                    if largest_prob_dot is not None:
+                            
+                            x1,y1,x2,y2 = largest_prob_dot
+                            picked_coord.append((0,x1,y1,x2,y2))
+        getSubmitResult(input_path, picked_coord, result_txt_path)

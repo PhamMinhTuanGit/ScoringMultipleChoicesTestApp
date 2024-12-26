@@ -108,7 +108,7 @@ class BubbleClassifier:
 
                         # Append each dot's coordinates and size
                         if gap_string == "none":
-                            output_content += f" {x},{y},{width},{height}"
+                            output_content += f"{x},{y},{width},{height} "
                         if gap_string == "a":
                             output_content += f" {input_string}.{chr(ord('a') + batch_num)} {x},{y},{width},{height}"                            
                         if input_string =="1." or input_string=="SBD" or input_string=="MDT":

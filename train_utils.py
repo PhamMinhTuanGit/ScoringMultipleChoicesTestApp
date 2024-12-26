@@ -10,6 +10,8 @@ import visualization
 from utilities import extract_bubbles, generate_random_colors, append_to_file
 from bubble_classify import BubbleClassifier
 from torchvision import transforms
+from fixed_coordinates import fixed_circle
+import os
 def read_file_to_tensors(file_path):
     """
     Reads a text file line by line, extracts labels and coordinates, and converts them into separate tensors.
@@ -114,25 +116,27 @@ def sort_to_convex_quadrilateral(dots):
     sorted_dots = sorted(dots, key=polar_angle)
     return sorted_dots
 def getBubblesInClass(input_image_path, input_data, section_index, axis = 0, eps = 0.002):
-        centers = image_processing.getNails(input_image_path)
-        gridmatrix = grid_info.getGridmatrix(centers)
-        gridsection = grid_info.getExtractsections(gridmatrix)
-        dots = extract_bubbles(input_data)
-        corners = gridsection[section_index[0]][section_index[1]]
-        corners = sort_to_convex_quadrilateral(corners)
-        if len(corners) != 4:
-                raise ValueError("Exactly 4 corners are required to define a quadrilateral.")
+        # centers = image_processing.getNails(input_image_path)
+        # gridmatrix = grid_info.getGridmatrix(centers)
+        # gridsection = grid_info.getExtractsections(gridmatrix)
+        # dots = extract_bubbles(input_data)
+        # corners = gridsection[section_index[0]][section_index[1]]
+        # corners = sort_to_convex_quadrilateral(corners)
+        # 
+        # if len(corners) != 4:
+        #         raise ValueError("Exactly 4 corners are required to define a quadrilateral.")
 
-                # Create a Polygon object using the corners
-        polygon = Polygon(corners)
+        #         # Create a Polygon object using the corners
+        # polygon = Polygon(corners)
 
                 # Filter dots that are inside the polygon (only checking x and y values)
-        inside_dots = [dot for dot in dots if polygon.contains(Point(dot[1], dot[2]))]
+        matrix_coordinate = fixed_circle(input_image_path, output_file = "test.txt")
+        inside_dots = matrix_coordinate[section_index[0]][section_index[1]]
         dots = inside_dots
         values = np.array([dot[axis + 1] for dot in dots]).reshape(-1, 1)
         if axis == 0:
             eps = 0.005
-
+        
         # Apply DBSCAN clustering
         clustering = DBSCAN(eps=eps, min_samples=1).fit(values)
 
@@ -150,12 +154,7 @@ def getBubblesInClass(input_image_path, input_data, section_index, axis = 0, eps
         ]
         return sorted(clustered_batches, key=lambda batch: batch[0][axis + 1])
       
-
-def Process(input_image_path,input_data, model, output_txt_path):
-    device = torch.device("mps")
-    image = cv2.imread(input_image_path)
-
-    sections = [
+sections = [
             {"name": "SBD", "section_index": (0, 0), "axis": 0, "eps": 0.002, "input_string": "SBD", "gap_string": 0},
             {"name": "MDT", "section_index": (0, 1), "axis": 0, "eps": 0.002, "input_string": "MDT", "gap_string": 0},
             {"name": "phan1_1", "section_index": (1, 0), "axis": 1, "eps": 0.002, "input_string": "1.", "gap_string": 0},
@@ -177,34 +176,52 @@ def Process(input_image_path,input_data, model, output_txt_path):
             {"name": "phan3_5", "section_index": (3, 4), "axis": 0, "eps": 0.002, "input_string": "3.5", "gap_string": "none"},
             {"name": "phan3_6", "section_index": (3, 5), "axis": 0, "eps": 0.002, "input_string": "3.6", "gap_string": "none"}
         ]
-    with open(output_txt_path, 'w') as f:
-        for section in sections:
-            Bubbles = getBubblesInClass(input_image_path, input_data, section["section_index"], axis=section["axis"], eps=section["eps"])
-            for Class in Bubbles:
-                max_confidence = -float('inf')
-                best_coords = None   
-                for label in Class:
-                    _, x1, y1, x2, y2 = label
-                    coord = (x1, y1, x2, y2)
-                    x1, y1, x2, y2 = find_yolov8_square(image, coord)
-                    input = get_box(image, (x1, y1, x2, y2))
-                    
-                    transform = transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Resize((32, 32))
-                    ])
-                    model.eval()
-                    input = transform(input).to(device)
-                    output = model(input.unsqueeze(0))
-                    confidence_score = output[0][0].item()  # Access the first element, which is the confidence score
-
-                    # Cập nhật bounding box có confidence cao nhất trong class
-                    if confidence_score > max_confidence:
-                        max_confidence = confidence_score
-                        best_coords = (x1, y1, x2, y2)
-
-                # Sau khi đã tìm được bounding box có confidence cao nhất trong class
-                if best_coords:
-                    x1, y1, x2, y2 = best_coords
-                    # Ghi tọa độ vào file txt
-                    f.write(f"{x1},{y1},{x2},{y2}\n")  # Ghi một dòng tọa độ
+def Section(sections=sections):
+    return sections
+    
+def get_files_with_prefix(directory, prefix="IMG"):
+    """
+    Tạo danh sách các tệp trong thư mục có tiền tố cụ thể.
+    
+    :param directory: Đường dẫn tới thư mục cần kiểm tra.
+    :param prefix: Tiền tố cần lọc (mặc định là "IMG").
+    :return: Danh sách tên các tệp có tiền tố.
+    """
+    try:
+        # Lấy danh sách tệp trong thư mục
+        all_files = os.listdir(directory)
+        
+        # Lọc các tệp có tiền tố cụ thể
+        filtered_files = [file for file in all_files if file.startswith(prefix) and os.path.isfile(os.path.join(directory, file))]
+        
+        return filtered_files
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")
+        return []
+def get_prefixes_with_two_underscores(directory):
+    """
+    Lấy danh sách các tiền tố xuất hiện trong tên file đến dấu gạch dưới thứ 2.
+    
+    :param directory: Đường dẫn tới thư mục cần kiểm tra.
+    :return: Danh sách các tiền tố (không trùng lặp).
+    """
+    try:
+        # Lấy danh sách tệp trong thư mục
+        all_files = os.listdir(directory)
+        
+        # Tách tiền tố đến dấu gạch dưới thứ 2
+        prefixes = set()
+        for file in all_files:
+            if os.path.isfile(os.path.join(directory, file)):
+                # Loại bỏ phần mở rộng và tách tiền tố
+                file_name = file.split('.')[0]
+                if '_' in file_name:
+                    parts = file_name.split('_')
+                    if len(parts) >= 2:  # Đảm bảo có ít nhất 2 phần
+                        prefix = '_'.join(parts[:2])  # Lấy đến dấu gạch dưới thứ 2
+                        prefixes.add(prefix)
+        
+        return list(prefixes)
+    except Exception as e:
+        print(f"Đã xảy ra lỗi: {e}")
+        return []

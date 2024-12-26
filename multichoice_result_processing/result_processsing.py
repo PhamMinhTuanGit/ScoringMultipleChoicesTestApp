@@ -31,12 +31,12 @@ def getSubmitResult(input_image_path, input_data, result_txt_path):
             {"name": "phan2_6", "section_index": (2, 5), "axis": 1, "eps": 0.002, "input_string": "2.6", "gap_string": "a"},
             {"name": "phan2_7", "section_index": (2, 6), "axis": 1, "eps": 0.002, "input_string": "2.7", "gap_string": "a"},
             {"name": "phan2_8", "section_index": (2, 7), "axis": 1, "eps": 0.002, "input_string": "2.8", "gap_string": "a"},
-            {"name": "phan3_1", "section_index": (3, 0), "axis": 1, "eps": 0.002, "input_string": "3.1", "gap_string": "none"},
-            {"name": "phan3_2", "section_index": (3, 1), "axis": 1, "eps": 0.002, "input_string": "3.2", "gap_string": "none"},
-            {"name": "phan3_3", "section_index": (3, 2), "axis": 1, "eps": 0.002, "input_string": "3.3", "gap_string": "none"},
-            {"name": "phan3_4", "section_index": (3, 3), "axis": 1, "eps": 0.002, "input_string": "3.4", "gap_string": "none"},
-            {"name": "phan3_5", "section_index": (3, 4), "axis": 1, "eps": 0.002, "input_string": "3.5", "gap_string": "none"},
-            {"name": "phan3_6", "section_index": (3, 5), "axis": 1, "eps": 0.002, "input_string": "3.6", "gap_string": "none"}
+            {"name": "phan3_1", "section_index": (3, 0), "axis": 1, "eps": 0.002, "input_string": "3.1 ", "gap_string": "none"},
+            {"name": "phan3_2", "section_index": (3, 1), "axis": 1, "eps": 0.002, "input_string": "3.2 ", "gap_string": "none"},
+            {"name": "phan3_3", "section_index": (3, 2), "axis": 1, "eps": 0.002, "input_string": "3.3 ", "gap_string": "none"},
+            {"name": "phan3_4", "section_index": (3, 3), "axis": 1, "eps": 0.002, "input_string": "3.4 ", "gap_string": "none"},
+            {"name": "phan3_5", "section_index": (3, 4), "axis": 1, "eps": 0.002, "input_string": "3.5 ", "gap_string": "none"},
+            {"name": "phan3_6", "section_index": (3, 5), "axis": 1, "eps": 0.002, "input_string": "3.6 ", "gap_string": "none"}
         ]
 
         # Step 1: Detect nail centers in the image
