@@ -5,7 +5,8 @@ from generate_points import add_points_by_region, add_points_by_region_custom, a
 from utils import convert_to_yolo_format, save_to_txt, create_matrix, yolo_to_pixel, add_missing_corners
 from draw_black_square import draw_rectangles
 from warp_perspective import warp_perspective_for_detect
-
+from visualize import draw_boxes_from_list
+from utilities import append_to_file
 def fixed_circle(input_image_path, output_file):
     image = cv2.imread(input_image_path)
     cv2.imwrite("Image/raw_image.jpg", image)
@@ -100,3 +101,148 @@ def fixed_circle(input_image_path, output_file):
     save_to_txt(yolo_coordinates_with_class, output_file)
 
     return matrix_coordinate
+
+def arrange_elements(elements, number_of_elements, axis):
+    """
+    Arrange elements into rows based on number_of_elements and specified axis.
+
+    Args:
+        elements (list of tuples): List of tuples (x, y, width, height) to arrange.
+        number_of_elements (int): Number of elements per row.
+        axis (str): Axis to arrange by, 'x' or 'y'.
+
+    Returns:
+        list of list: A list of rows, where each row is a list of tuples.
+    """
+    if axis not in ('x', 'y'):
+        raise ValueError("Axis must be either 'x' or 'y'.")
+
+    # Group elements into rows of number_of_elements each
+    rows = [elements[i:i + number_of_elements] for i in range(0, len(elements), number_of_elements)]
+
+    # If axis is 'y', compute the transpose of the rows
+    if axis == 'y':
+        rows = list(map(list, zip(*rows)))
+
+    return rows
+
+def split_and_group_elements(elements):
+    """
+    Split a list of tuples into sections based on blocks of 4 elements.
+
+    Args:
+        elements (list of tuples): List of tuples (x, y, w, h).
+
+    Returns:
+        tuple: (list of section_2_1, list of section_2_2)
+    """
+    section_2_1 = []
+    section_2_2 = []
+
+    for i in range(0, len(elements), 4):
+        block = elements[i:i + 4]
+        if len(block) == 4:
+            section_2_1.append(block[:2])
+            section_2_2.append(block[2:])
+
+    return section_2_1, section_2_2
+
+def write_result(section_name, class_name,i, dot,file_name="result_update.txt"):
+    """
+    Write formatted section data to a text file.
+
+    Args:
+        section_name (int): Section number.
+        class_name (int): Class number.
+        i (int): Index of the row in the section.
+        dot (tuple): (x, y, w, h) of the dot.
+        file_name (str, optional): Name of the output file. Defaults to "result_update.txt".
+
+    Writes:
+        Data in the format specific to the section.
+    """
+    with open(file_name, 'a') as file:
+        (x, y, w, h) = dot
+        print("section_name is",section_name)
+        print("dot is: ",(x, y, w, h))
+        if section_name == 0 and class_name == 0:
+            file.write(f" SBD{i+1} {x},{y},{w},{h}")
+        elif section_name == 0 and class_name == 1:
+            file.write(f" MDT{i+1} {x},{y},{w},{h}")
+        elif section_name == 1 and class_name == 0:
+            file.write(f" 1.{i+1} {x},{y},{w},{h}")
+        elif section_name == 1 and class_name == 1:
+            file.write(f" 1.{i+11} {x},{y},{w},{h}")
+        elif section_name == 1 and class_name == 2:
+            file.write(f" 1.{i+21} {x},{y},{w},{h}")
+        elif section_name == 1 and class_name == 3:
+            file.write(f" 1.{i+31} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 0:
+            file.write(f" 2.1.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 1:
+            file.write(f" 2.2.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 2:
+            file.write(f" 2.3.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 3:
+            file.write(f" 2.4.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 4:
+            file.write(f" 2.5.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 5:
+            file.write(f" 2.6.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 6:
+            file.write(f" 2.7.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        elif section_name == 2 and class_name == 7:
+            file.write(f" 2.8.{chr(ord('a') + i)} {x},{y},{w},{h}")
+        else:
+            file.write(f" {x},{y},{w},{h}")
+def cluster_section(matrix_coordinate):
+    clustered_matrix = [[None for _ in range(8)] for _ in range(4)]
+
+    # Assign values to the clustered_matrix based on your logic
+    clustered_matrix[0][0] = arrange_elements(matrix_coordinate[0][0], 6, 'y')
+    clustered_matrix[0][1] = arrange_elements(matrix_coordinate[0][1], 6, 'y')
+    clustered_matrix[1][0] = arrange_elements(matrix_coordinate[1][0], 4, 'x')
+    clustered_matrix[1][1] = arrange_elements(matrix_coordinate[1][1], 4, 'x')
+    clustered_matrix[1][2] = arrange_elements(matrix_coordinate[1][2], 4, 'x')
+    clustered_matrix[1][3] = arrange_elements(matrix_coordinate[1][3], 4, 'x')
+    clustered_matrix[2][0], clustered_matrix[2][1] = split_and_group_elements(matrix_coordinate[2][0])
+    clustered_matrix[2][2], clustered_matrix[2][3] = split_and_group_elements(matrix_coordinate[2][1])
+    clustered_matrix[2][4], clustered_matrix[2][5] = split_and_group_elements(matrix_coordinate[2][2])
+    clustered_matrix[2][6], clustered_matrix[2][7] = split_and_group_elements(matrix_coordinate[2][3])
+    clustered_matrix[3][0] = matrix_coordinate[3][0]
+    clustered_matrix[3][1] = matrix_coordinate[3][1]
+    clustered_matrix[3][2] = matrix_coordinate[3][2]
+    clustered_matrix[3][3] = matrix_coordinate[3][3]
+    return clustered_matrix
+
+if __name__ == "__main__":
+    input_image_path = "IMG_1581_iter_1.jpg"
+    output_file = "fix_circle.txt"
+    matrix_coordinate = fixed_circle(input_image_path, output_file)
+    clustered_matrix = cluster_section(matrix_coordinate)
+    print(clustered_matrix[0][0][0])
+
+    # bat dau chay thu viet file se goi ham nay
+    # append_to_file(output_file,input_image_path)
+    # sau moi lan phan loai se goi ham nay
+    write_result(1,3,4,(0.20832775310507898, 0.5971234562812401, 0.015964523281596452, 0.010472865756902571))
+
+    # doi voi phan 3 thi truoc khi phan loai cho moi phan phai viet them string
+    # append_to_file(output_file," 3.1")
+    # append_to_file(output_file," 3.1")
+    # for k in cluster_matrix[3][0][k]
+    #     dot=hamkiemtra()
+    #     write_result(3,0,0,dot)
+    # append_to_file(output_file," 3.2")
+
+    # for k in  cluster_matrix[3][1][k]
+    #     dot=hamkiemtra()
+    #     write_result(3,0,0,dot) 
+    # append_to_file(output_file," 3.3")
+
+    #  for k in  cluster_matrix[3][3][k]
+    #     dot=hamkiemtra()
+    #     write_result(3,0,0,dot) 
+    # append_to_file(output_file," 3.3")
+
+    # append_to_file(output_file,"\n")
