@@ -1,17 +1,48 @@
 import cv2
-from detect_black_square import detect_black_square_centers
+from detect_black_square import detect_black_square_centers, detect_black_squares
 from preprocess import find_angle, rotate
 from generate_points import add_points_by_region, add_points_by_region_custom, add_points_by_region_three_1, add_points_by_region_two, add_points_by_region_three_2
-from utils import convert_to_yolo_format, save_to_txt, create_matrix
+from utils import convert_to_yolo_format, save_to_txt, create_matrix, yolo_to_pixel
+from draw_black_square import draw_rectangles
+from warp_perspective import warp_perspective_for_detect
 
 def fixed_circle(input_image_path, output_file):
     image = cv2.imread(input_image_path)
     height, width = image.shape[:2]
     image_size = (width, height)
+    print("Shape: ", image_size)
 
     final_coordinate = []
     matrix_coordinate = create_matrix()
-    centers = detect_black_square_centers(input_image_path)
+
+    corner_squares = detect_black_squares(image, 35, 35)
+    print(len(corner_squares))
+    new_order = [3, 2, 0, 1]
+    corner_squares = [corner_squares[i] for i in new_order]
+
+    pixel_points = yolo_to_pixel(corner_squares, image_size)
+    print("4 corners old: ", pixel_points)
+    pixel_points = [
+        (x - 60, y - 60) if i == 0 else 
+        (x + 60, y - 60) if i == 1 else 
+        (x + 60, y + 60) if i == 2 else 
+        (x - 60, y + 60)
+        for i, (x, y) in enumerate(pixel_points)
+    ]
+    print("4 corners new: ", pixel_points)
+    # draw_rectangles(input_image_path, corner_squares, 20, 20, "Image/Four_corners.jpg")
+
+    #centers = detect_black_square_centers(input_image_path)
+    center_pixel = warp_perspective_for_detect(image, pixel_points, image_size)
+    center_yolo = []
+    for bbox in center_pixel:
+        center_x, center_y = bbox
+        # Normalize the values
+        center_x_normalized = center_x / width
+        center_y_normalized = center_y / height
+        # Add to the YOLO formatted list
+        center_yolo.append((center_x_normalized, center_y_normalized))
+    centers = center_yolo
 
     # idx_list = [1, 7, 30, 31]
 
