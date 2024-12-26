@@ -65,7 +65,7 @@ if best_checkpoint_path:
     print(f"Loading best checkpoint from: {best_checkpoint_path}")
     
     # Load mô hình từ checkpoint (gọi trực tiếp trên class)
-    model = CroatianFishClassifier.load_from_checkpoint(best_checkpoint_path)
+    model = CroatianFishClassifier.load_from_checkpoint(best_checkpoint_path, weights_only=True)
     
     # Chuyển mô hình sang chế độ đánh giá
     model.eval()

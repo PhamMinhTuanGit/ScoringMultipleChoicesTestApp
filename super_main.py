@@ -44,6 +44,7 @@ folder_path = "/Users/phamminhtuan/Downloads/images 2"
 # for prefix in prefixes:
 #     common_prefix_files = get_files_with_prefix(folder_path, prefix=prefix)
 for filename in os.listdir(folder_path):
+        print("Processing file:", filename)
         picked_coord = []
         with open("temp.txt", 'w') as file:
             pass
@@ -51,54 +52,73 @@ for filename in os.listdir(folder_path):
             pass
         input_path = os.path.join(folder_path, filename)
         fixed_circle(input_path, coord_saver)
-        # labels, coords = read_file_to_tensors(coord_saver)
+        labels, coords = read_file_to_tensors(coord_saver)
         image = cv2.imread(input_path)
         h, w = image.shape[:2]
-        input_data = extract_bubbles(coord_saver)
-        # Step 1: Detect nail centers in the image
-        centers = detect_black_square.detect_black_square_centers(input_path)
-        #print("Centers:", centers)
-        filename = os.path.basename(input_path)
-        # Step 2: Extract grid information from nail centers
-        gridmatrix = grid_info.getGridmatrix(centers)
-        #print("Grid matrix:", gridmatrix)
-        gridsection = grid_info.getExtractsections(gridmatrix)
-        #print("Grid sections:", gridsection)
-        # Step 3: Extract bubble data from input file
-        dots = input_data
-        bubble_classifier = BubbleClassifier(gridsection, dots)
+        # image = cv2.imread(input_path)
+        # h, w = image.shape[:2]
+        # input_data = extract_bubbles(coord_saver)
+        # # Step 1: Detect nail centers in the image
+        # centers = detect_black_square.detect_black_square_centers(input_path)
+        # print("Centers:", centers)
+        # # Step 2: Extract grid information from nail centers
+        # gridmatrix = grid_info.getGridmatrix(centers)
+        # print("Grid matrix:", gridmatrix)
+        # gridsection = grid_info.getExtractsections(gridmatrix)
+        # #print("Grid sections:", gridsection)
+        # # Step 3: Extract bubble data from input file
+        # dots = input_data
+        # bubble_classifier = BubbleClassifier(gridsection, dots)
 
 
-        for section in sections:
-                corners = gridsection[section["section_index"][0]][section["section_index"][1]]
-                dots_inside = bubble_classifier.dots_in_quadrilateral(corners)
-                clustered = bubble_classifier.classify_batches(dots_inside, axis=section["axis"], eps=section["eps"])
-            # Chuyển coords từ tensor sang list
-                for i in range(len(clustered)):
-                    best_val = -99999
-                    largest_prob_dot = None
-                    for j in range(len(clustered[i])):
-                            coord = clustered[i][j]
-                            _, x1,y1,x2,y2 = coord
-                            xy_coord = find_yolov8_square(image, (x1,y1,x2,y2))
+        # for section in sections:
+        #         corners = gridsection[section["section_index"][0]][section["section_index"][1]]
+        #         dots_inside = bubble_classifier.dots_in_quadrilateral(corners)
+        #         clustered = bubble_classifier.classify_batches(dots_inside, axis=section["axis"], eps=section["eps"])
+        #     # Chuyển coords từ tensor sang list
+        #         for i in range(len(clustered)):
+        #             best_val = -99999
+        #             largest_prob_dot = None
+        #             for j in range(len(clustered[i])):
+        #                     coord = clustered[i][j]
+        #                     _, x1,y1,x2,y2 = coord
+        #                     xy_coord = find_yolov8_square(image, (x1,y1,x2,y2))
                             
                         
-                            input = get_box(image, xy_coord)
-                            transform = transforms.Compose([
+        #                     input = get_box(image, xy_coord)
+        #                     transform = transforms.Compose([
+        #                         transforms.ToTensor(),
+        #                         transforms.Resize((32, 32))
+        #                     ])
+        #                     input = transform(input).to(device)
+        #                     output = model(input.unsqueeze(0))
+        #                     # _, predicted = torch.max(output, 1)
+        #                     temp = output[0][0].item()
+        #                     if temp > best_val:
+        #                         # Thêm tuple (0, x1, y1, x2, y2) vào danh sách
+        #                         best_val = temp
+        #                         largest_prob_dot = (x1, y1, x2, y2)
+                                
+        #             if largest_prob_dot is not None:
+                            
+        #                     x1,y1,x2,y2 = largest_prob_dot
+        #                     picked_coord.append((0,x1,y1,x2,y2))
+        # getSubmitResult(input_path, picked_coord, result_txt_path)
+
+
+        for i, coord in enumerate(coords):
+                    xy_coord = find_yolov8_square(image, coord)
+                    x1, y1, x2, y2 = xy_coord
+                    input = get_box(image, xy_coord)
+                    transform = transforms.Compose([
                                 transforms.ToTensor(),
                                 transforms.Resize((32, 32))
-                            ])
-                            input = transform(input).to(device)
-                            output = model(input.unsqueeze(0))
-                            # _, predicted = torch.max(output, 1)
-                            temp = output[0][0].item()
-                            if temp > best_val:
-                                # Thêm tuple (0, x1, y1, x2, y2) vào danh sách
-                                best_val = temp
-                                largest_prob_dot = (x1, y1, x2, y2)
-                                
-                    if largest_prob_dot is not None:
-                            
-                            x1,y1,x2,y2 = largest_prob_dot
-                            picked_coord.append((0,x1,y1,x2,y2))
+                                ])
+                    input = transform(input).to(device)
+                    output = model(input.unsqueeze(0))
+                    _, predicted = torch.max(output, 1)
+                    if(predicted == 0):
+                        picked_coord.append((0,x1/w,y1/h,x2/w,y2/h))
+                        cv2.rectangle(image, (x1,y1), (x2,y2),(0,255,0),2)
         getSubmitResult(input_path, picked_coord, result_txt_path)
+        cv2.imwrite("avg_coords.jpg", image)
