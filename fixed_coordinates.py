@@ -1,7 +1,7 @@
 import cv2
 from detect_black_square import detect_black_square_centers
 from preprocess import find_angle, rotate
-from generate_points import add_points_by_region, add_points_by_region_custom, add_points_by_region_three, add_points_by_region_two
+from generate_points import add_points_by_region, add_points_by_region_custom, add_points_by_region_three_1, add_points_by_region_two, add_points_by_region_three_2
 from utils import convert_to_yolo_format, save_to_txt, create_matrix
 
 def fixed_circle(input_image_path, output_file):
@@ -30,18 +30,18 @@ def fixed_circle(input_image_path, output_file):
     # centers = detect_black_square_centers(image)
 
     # Add the coordinate of each area
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [29, 28, 23, 24], (0.185, 0.11, 0.0973, 0.0523), (10, 6), (0.018, 0.035), centers, final_coordinate, matrix_coordinate, 0, 0, width, height) # SBD
-    final_coordinate, matrix_coordinate = add_points_by_region_two(image, [28, 23], (0.28, 0.11, 0.13, 0.0523), (10, 3), (0.03, 0.0353), centers, final_coordinate, matrix_coordinate, 0, 1, width, height) #MDT
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [29, 28, 23, 24], (0.175, 0.105, 0.0127, 0.011), (10, 6), (0.105, 0.077), centers, final_coordinate, image_size, matrix_coordinate, 0, 0, width, height) # SBD
+    final_coordinate, matrix_coordinate = add_points_by_region_two(image, [28, 29, 24, 23], (0.256, 0.105, 0.0127, 0.011), (10, 3), (0.164, 0.077), centers, final_coordinate, image_size, matrix_coordinate, 0, 1, width, height) #MDT
 
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [27, 26, 20, 21], (0.247, 0.21, 0.079, 0.058), (10, 4), (0.128, 0.015), centers, final_coordinate, matrix_coordinate, 1, 0, width, height) # Phan1_1
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [25, 26, 20, 19], (0.247, 0.21, 0.079, 0.058), (10, 4), (0.128, 0.015), centers, final_coordinate, matrix_coordinate, 1, 1, width, height) # Phan1_2
-    final_coordinate, matrix_coordinate = add_points_by_region_three(image, [25, 18, 19], (0.247, 0.21, 0.079, 0.058), (10, 4), (0.128, 0.015), centers, final_coordinate, matrix_coordinate, 1, 2, width, height) # Phan1_3
-    final_coordinate, matrix_coordinate = add_points_by_region_three(image, [22, 18, 17], (0.247, 0.2, 0.079, 0.058), (10, 4), (0.128, 0.015), centers, final_coordinate, matrix_coordinate, 1, 3, width, height) # Phan1_4
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [27, 26, 20, 21], (0.233, 0.2, 0.016, 0.0105), (10, 4), (0.195, 0.063), centers, final_coordinate, image_size, matrix_coordinate, 1, 0, width, height) # Phan1_1
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [26, 25, 19, 20], (0.233, 0.2, 0.016, 0.0105), (10, 4), (0.195, 0.063), centers, final_coordinate, image_size, matrix_coordinate, 1, 1, width, height) # Phan1_2
+    final_coordinate, matrix_coordinate = add_points_by_region_three_1(image, [25, 22, 18, 19], (0.233, 0.2, 0.016, 0.0105), (10, 4), (0.195, 0.063), centers, final_coordinate, image_size, matrix_coordinate, 1, 2, width, height) # Phan1_3
+    final_coordinate, matrix_coordinate = add_points_by_region_three_2(image, [25, 22, 17, 18], (0.233, 0.2, 0.016, 0.0105), (10, 4), (0.195, 0.063), centers, final_coordinate, image_size, matrix_coordinate, 1, 3, width, height) # Phan1_4
 
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [21, 20, 14, 16], (0.245, 0.47, 0.078, 0.094), (4, 4), (0.13, 0.025), centers, final_coordinate, matrix_coordinate, 2, 0, width, height) # Phan2_1
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [19, 20, 14, 12], (0.245, 0.47, 0.078, 0.094), (4, 4), (0.13, 0.025), centers, final_coordinate, matrix_coordinate, 2, 1, width, height) # Phan2_2
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [19, 18, 10, 12], (0.245, 0.47, 0.078, 0.094), (4, 4), (0.125, 0.02), centers, final_coordinate, matrix_coordinate, 2, 2, width, height) # Phan2_3
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [17, 18, 10, 8], (0.245, 0.47, 0.078, 0.094), (4, 4), (0.125, 0.02), centers, final_coordinate, matrix_coordinate, 2, 3, width, height) # Phan2_4
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [21, 20, 14, 16], (0.235, 0.475, 0.016, 0.0105), (4, 4), (0.195, 0.105), centers, final_coordinate, image_size, matrix_coordinate, 2, 0, width, height) # Phan2_1
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [20, 19, 12, 14], (0.235, 0.475, 0.016, 0.0105), (4, 4), (0.195, 0.105), centers, final_coordinate, image_size, matrix_coordinate, 2, 1, width, height) # Phan2_2
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [19, 18, 10, 12], (0.235, 0.475, 0.016, 0.0105), (4, 4), (0.195, 0.105), centers, final_coordinate, image_size, matrix_coordinate, 2, 2, width, height) # Phan2_3
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [18, 17, 8, 10], (0.235, 0.475, 0.016, 0.0105), (4, 4), (0.195, 0.105), centers, final_coordinate, image_size, matrix_coordinate, 2, 3, width, height) # Phan2_4
 
     final_coordinate, matrix_coordinate = add_points_by_region_custom(image, [16, 15, 6, 7], (0.344, 0.37, 0.0158, 0.012), (10, 4), (0.132, 0.046), centers, final_coordinate, image_size, matrix_coordinate, 3, 0, width, height) # Phan3_1
     final_coordinate, matrix_coordinate = add_points_by_region_custom(image, [15, 13, 5, 6], (0.344, 0.37, 0.0158, 0.012), (10, 4), (0.132, 0.046), centers, final_coordinate, image_size, matrix_coordinate, 3, 1, width, height) # Phan3_2

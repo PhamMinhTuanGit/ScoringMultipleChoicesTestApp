@@ -1,7 +1,7 @@
 from fixed_coordinates import fixed_circle
 from visualize import draw_boxes_from_txt, draw_boxes_from_list
 
-input_image_path = r"Image\IMG_3958_iter_219.jpg"
+input_image_path = r"C:\Users\i-ducvn\Project\AI HUST\testset2\images\IMG_1.jpg"
 output_file = "test.txt"
 
 print(input_image_path)
