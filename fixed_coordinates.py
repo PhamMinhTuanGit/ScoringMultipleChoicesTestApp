@@ -2,12 +2,13 @@ import cv2
 from detect_black_square import detect_black_square_centers, detect_black_squares
 from preprocess import find_angle, rotate
 from generate_points import add_points_by_region, add_points_by_region_custom, add_points_by_region_three_1, add_points_by_region_two, add_points_by_region_three_2
-from utils import convert_to_yolo_format, save_to_txt, create_matrix, yolo_to_pixel
+from utils import convert_to_yolo_format, save_to_txt, create_matrix, yolo_to_pixel, add_missing_corners
 from draw_black_square import draw_rectangles
 from warp_perspective import warp_perspective_for_detect
 
 def fixed_circle(input_image_path, output_file):
     image = cv2.imread(input_image_path)
+    cv2.imwrite("Image/raw_image.jpg", image)
     height, width = image.shape[:2]
     image_size = (width, height)
     print("Shape: ", image_size)
@@ -16,12 +17,22 @@ def fixed_circle(input_image_path, output_file):
     matrix_coordinate = create_matrix()
 
     corner_squares = detect_black_squares(image, 35, 35)
-    print(len(corner_squares))
-    new_order = [3, 2, 0, 1]
-    corner_squares = [corner_squares[i] for i in new_order]
+    #print(len(corner_squares))
 
     pixel_points = yolo_to_pixel(corner_squares, image_size)
-    print("4 corners old: ", pixel_points)
+    if len(corner_squares) <= 3:
+        pixel_points = add_missing_corners(pixel_points)
+
+    sorted_by_y = sorted(pixel_points, key=lambda t: t[1]) # Sắp xếp danh sách ban đầu theo giá trị y tăng dần
+    group1 = sorted_by_y[:2]  # 2 phần tử có y nhỏ nhất
+    group2 = sorted_by_y[2:]  # Các phần tử còn lại
+
+    group1_sorted = sorted(group1, key=lambda t: t[0])  # x tăng dần
+    group2_sorted = sorted(group2, key=lambda t: t[0], reverse=True)  # x giảm dần
+
+    pixel_points = group1_sorted + group2_sorted
+
+    #print("4 corners old: ", pixel_points)
     pixel_points = [
         (x - 60, y - 60) if i == 0 else 
         (x + 60, y - 60) if i == 1 else 
@@ -29,7 +40,7 @@ def fixed_circle(input_image_path, output_file):
         (x - 60, y + 60)
         for i, (x, y) in enumerate(pixel_points)
     ]
-    print("4 corners new: ", pixel_points)
+    #print("4 corners new: ", pixel_points)
     # draw_rectangles(input_image_path, corner_squares, 20, 20, "Image/Four_corners.jpg")
 
     #centers = detect_black_square_centers(input_image_path)
@@ -61,8 +72,8 @@ def fixed_circle(input_image_path, output_file):
     # centers = detect_black_square_centers(image)
 
     # Add the coordinate of each area
-    final_coordinate, matrix_coordinate = add_points_by_region(image, [29, 28, 23, 24], (0.175, 0.105, 0.0127, 0.011), (10, 6), (0.105, 0.077), centers, final_coordinate, image_size, matrix_coordinate, 0, 0, width, height) # SBD
-    final_coordinate, matrix_coordinate = add_points_by_region_two(image, [28, 29, 24, 23], (0.256, 0.105, 0.0127, 0.011), (10, 3), (0.164, 0.077), centers, final_coordinate, image_size, matrix_coordinate, 0, 1, width, height) #MDT
+    final_coordinate, matrix_coordinate = add_points_by_region(image, [29, 28, 23, 24], (0.175, 0.1055, 0.0127, 0.011), (10, 6), (0.105, 0.076), centers, final_coordinate, image_size, matrix_coordinate, 0, 0, width, height) # SBD
+    final_coordinate, matrix_coordinate = add_points_by_region_two(image, [28, 29, 24, 23], (0.256, 0.1055, 0.0127, 0.011), (10, 3), (0.164, 0.076), centers, final_coordinate, image_size, matrix_coordinate, 0, 1, width, height) #MDT
 
     final_coordinate, matrix_coordinate = add_points_by_region(image, [27, 26, 20, 21], (0.233, 0.2, 0.016, 0.0105), (10, 4), (0.195, 0.063), centers, final_coordinate, image_size, matrix_coordinate, 1, 0, width, height) # Phan1_1
     final_coordinate, matrix_coordinate = add_points_by_region(image, [26, 25, 19, 20], (0.233, 0.2, 0.016, 0.0105), (10, 4), (0.195, 0.063), centers, final_coordinate, image_size, matrix_coordinate, 1, 1, width, height) # Phan1_2

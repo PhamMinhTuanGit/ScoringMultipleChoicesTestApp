@@ -63,8 +63,8 @@ def add_points_by_region(image, idx_list, start_coord, grid_size, cell_spacing, 
 def add_points_by_region_two(image, idx_list, start_coord, grid_size, cell_spacing, centers, final_coordinate, image_size, matrix_coordinate, row, col, width, height):
     points_of_interest = [
         centers[idx_list[0]-1],  # Point 1
-        (centers[idx_list[0]-1][0]+(abs(centers[idx_list[0]-1][0]-centers[idx_list[1]-1][0])*2/3), centers[idx_list[0]-1][1]+(abs(centers[idx_list[0]-1][1]-centers[idx_list[1]-1][1])*2/3)),  # Point 3
-        (centers[idx_list[3]-1][0]+(abs(centers[idx_list[3]-1][0]-centers[idx_list[2]-1][0])*2/3), centers[idx_list[3]-1][1]+(abs(centers[idx_list[3]-1][1]-centers[idx_list[2]-1][1])*2/3)),   # Point 4
+        (centers[idx_list[0]-1][0]+((centers[idx_list[0]-1][0]-centers[idx_list[1]-1][0])*2/3), centers[idx_list[0]-1][1]+((centers[idx_list[0]-1][1]-centers[idx_list[1]-1][1])*2/3)),  # Point 3
+        (centers[idx_list[3]-1][0]+((centers[idx_list[3]-1][0]-centers[idx_list[2]-1][0])*2/3), centers[idx_list[3]-1][1]+((centers[idx_list[3]-1][1]-centers[idx_list[2]-1][1])*2/3)),   # Point 4
         centers[idx_list[3]-1],  # Point 4
     ]
 

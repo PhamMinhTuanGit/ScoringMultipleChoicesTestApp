@@ -47,6 +47,60 @@ def cut_image_from_points(image, points):
 
     return x_min, y_min, x_max, y_max
 
+def check_corner(corner, index):
+    if index == 0 and corner[0] <= 500 and corner[1] <= 500:
+        return True
+    if index == 1 and corner[0] >= 1500 and corner[1] <= 500:
+        return True
+    if index == 2 and corner[0] >= 1500 and corner[1] >= 1500:
+        return True
+    if index == 3 and corner[0] <= 500 and corner[1] >= 1500:
+        return True
+    return False
+
+def add_missing_corners(corners):
+    ground_truth = [(88, 240), (2125, 240), (2123, 2930), (90, 3000)]
+    corners_local = corners
+    print("Local old: ", corners_local)
+
+    # Top left
+    check = False
+    for corner in corners:
+        if corner[0] <= 500 and corner[1] <= 500:
+            check = True
+            break
+    if check == False:
+        corners_local.append(ground_truth[0])
+
+    # Top right
+    check = False
+    for corner in corners:
+        if corner[0] >= 1500 and corner[1] <= 500:
+            check = True
+            break
+    if check == False:
+        corners_local.append(ground_truth[1])
+
+    # Bottom right
+    check = False
+    for corner in corners:
+        if corner[0] >= 1500 and corner[1] >= 1500:
+            check = True
+            break
+    if check == False:
+        corners_local.append(ground_truth[2])
+
+    # Bottom left
+    check = False
+    for corner in corners:
+        if corner[0] <= 500 and corner[1] >= 1500:
+            check = True
+            break
+    if check == False:
+        corners_local.append(ground_truth[3])
+    print("Local new: ", corners_local)
+    return corners_local
+
 def convert_to_yolo_format(bboxes, img_width, img_height):
     """
     Convert bounding boxes to YOLO format.
