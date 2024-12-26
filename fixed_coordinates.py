@@ -89,3 +89,66 @@ def fixed_circle(input_image_path, output_file):
     save_to_txt(yolo_coordinates_with_class, output_file)
 
     return matrix_coordinate
+
+def arrange_elements(elements, number_of_elements, axis):
+    """
+    Arrange elements into rows based on number_of_elements and specified axis.
+
+    Args:
+        elements (list of tuples): List of tuples (x, y, width, height) to arrange.
+        number_of_elements (int): Number of elements per row.
+        axis (str): Axis to arrange by, 'x' or 'y'.
+
+    Returns:
+        list of list: A list of rows, where each row is a list of tuples.
+    """
+    if axis not in ('x', 'y'):
+        raise ValueError("Axis must be either 'x' or 'y'.")
+
+    # Group elements into rows of number_of_elements each
+    rows = [elements[i:i + number_of_elements] for i in range(0, len(elements), number_of_elements)]
+
+    # If axis is 'y', compute the transpose of the rows
+    if axis == 'y':
+        rows = list(map(list, zip(*rows)))
+
+    return rows
+
+def split_and_group_elements(elements):
+    """
+    Split a list of tuples into sections based on blocks of 4 elements.
+
+    Args:
+        elements (list of tuples): List of tuples (x, y, w, h).
+
+    Returns:
+        tuple: (list of section_2_1, list of section_2_2)
+    """
+    section_2_1 = []
+    section_2_2 = []
+
+    for i in range(0, len(elements), 4):
+        block = elements[i:i + 4]
+        if len(block) == 4:
+            section_2_1.append(block[:2])
+            section_2_2.append(block[2:])
+
+    return section_2_1, section_2_2
+
+input_image_path = r"D:\THO\Bach_Khoa\AI Challenge\Data\testset2\images\IMG_6.jpg"
+output_file = "test.txt"
+matrix_coordinate = fixed_circle(input_image_path, output_file)
+section_0_1 = arrange_elements(matrix_coordinate[0][0], 6, 'y')
+section_0_2 = arrange_elements(matrix_coordinate[0][1], 6, 'y')
+section_1_1 = arrange_elements(matrix_coordinate[1][0], 4, 'x')
+section_1_2 = arrange_elements(matrix_coordinate[1][1], 4, 'x')
+section_1_3 = arrange_elements(matrix_coordinate[1][2], 4, 'x')
+section_1_4 = arrange_elements(matrix_coordinate[1][3], 4, 'x')
+section_2_1, section_2_2 = split_and_group_elements(matrix_coordinate[2][0])
+section_2_3, section_2_4 = split_and_group_elements(matrix_coordinate[2][1])
+section_2_5, section_2_6 = split_and_group_elements(matrix_coordinate[2][2])
+section_2_7, section_2_8 = split_and_group_elements(matrix_coordinate[2][3])
+section_3_1 = matrix_coordinate[3][0]
+section_3_2 = matrix_coordinate[3][1]
+section_3_3 = matrix_coordinate[3][2]
+section_3_4 = matrix_coordinate[3][3]
