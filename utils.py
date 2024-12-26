@@ -81,6 +81,17 @@ def yolo_to_pixel(points, img_size):
     img_w, img_h = img_size
     return [(int(x * img_w), int(y * img_h)) for x, y in points]
 
+def create_matrix():
+    # Khởi tạo ma trận với kích thước mong muốn
+    matrix = [
+        [[0] * 5 for _ in range(2)],        # Hàng 1: 2 cột
+        [[0] * 5 for _ in range(4)],        # Hàng 2: 4 cột
+        [[0] * 5 for _ in range(4)],        # Hàng 3: 4 cột
+        [[0] * 5 for _ in range(6)]         # Hàng 4: 6 cột
+    ]
+    return matrix
+
+
 def save_to_txt(yolo_coordinates_with_class, output_file):
     # Write to txt
     with open(output_file, "w") as file:
