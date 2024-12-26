@@ -40,7 +40,7 @@ sections = [
         ]
 coord_saver = "test.txt"
 result_txt_path = 'results_test_cnn.txt'
-folder_path = "/Users/phamminhtuan/Downloads/testset1/images"
+folder_path = "/Users/phamminhtuan/Downloads/images 2"
 # for prefix in prefixes:
 #     common_prefix_files = get_files_with_prefix(folder_path, prefix=prefix)
 for filename in os.listdir(folder_path):
