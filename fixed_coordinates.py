@@ -6,6 +6,7 @@ from utils import convert_to_yolo_format, save_to_txt, create_matrix, yolo_to_pi
 from draw_black_square import draw_rectangles
 from warp_perspective import warp_perspective_for_detect
 from visualize import draw_boxes_from_list
+from utilities import append_to_file
 def fixed_circle(input_image_path, output_file):
     image = cv2.imread(input_image_path)
     cv2.imwrite("Image/raw_image.jpg", image)
@@ -220,6 +221,28 @@ if __name__ == "__main__":
     matrix_coordinate = fixed_circle(input_image_path, output_file)
     clustered_matrix = cluster_section(matrix_coordinate)
     print(clustered_matrix[0][0][0])
-    
+
+    # bat dau chay thu viet file se goi ham nay
+    # append_to_file(output_file,input_image_path)
     # sau moi lan phan loai se goi ham nay
-    write_result(2,1,0,clustered_matrix[2][1][0][0])
+    write_result(1,3,4,(0.20832775310507898, 0.5971234562812401, 0.015964523281596452, 0.010472865756902571))
+
+    # doi voi phan 3 thi truoc khi phan loai cho moi phan phai viet them string
+    # append_to_file(output_file," 3.1")
+    # append_to_file(output_file," 3.1")
+    # for k in cluster_matrix[3][0][k]
+    #     dot=hamkiemtra()
+    #     write_result(3,0,0,dot)
+    # append_to_file(output_file," 3.2")
+
+    # for k in  cluster_matrix[3][1][k]
+    #     dot=hamkiemtra()
+    #     write_result(3,0,0,dot) 
+    # append_to_file(output_file," 3.3")
+
+    #  for k in  cluster_matrix[3][3][k]
+    #     dot=hamkiemtra()
+    #     write_result(3,0,0,dot) 
+    # append_to_file(output_file," 3.3")
+
+    # append_to_file(output_file,"\n")
